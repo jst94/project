@@ -1,0 +1,12 @@
+{
+  "default_budget": 1000.0,
+  "preferred_method": "chaos_spam",
+  "overlay_opacity": 0.95,
+  "overlay_position": "top-right",
+  "auto_refresh_prices": true,
+  "price_update_interval": 300,
+  "show_budget_optimization": true,
+  "league_name": "Necropolis",
+  "ui_theme": "dark",
+  "auto_detect_items": false
+}

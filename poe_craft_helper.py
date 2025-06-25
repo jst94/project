@@ -3,7 +3,14 @@ from tkinter import ttk, scrolledtext, messagebox
 import json
 import os
 import random
+import threading
+import time
 from typing import List, Dict, Tuple, Optional
+from datetime import datetime
+from market_api import poe_market, price_optimizer
+from ocr_analyzer import ItemDetectionGUI
+from session_tracker import session_tracker
+from performance_optimizer import initialize_performance_optimizer, optimize_tkinter_performance
 
 class IntelligentPOECraftHelper:
     def __init__(self):
@@ -16,29 +23,60 @@ class IntelligentPOECraftHelper:
         # Comprehensive modifier database
         self.modifier_database = self.load_modifier_database()
         
-        # Currency costs (in chaos orbs)
-        self.currency_costs = {
-            'Chaos Orb': 1.0,
-            'Exalted Orb': 200.0,
-            'Divine Orb': 15.0,
-            'Orb of Annulment': 8.0,
-            'Orb of Scouring': 0.5,
-            'Orb of Alteration': 0.1,
-            'Orb of Augmentation': 0.05,
-            'Regal Orb': 2.0,
-            'Orb of Alchemy': 0.5,
-            'Orb of Transmutation': 0.02,
-            'Blessed Orb': 0.5,
-            'Chromatic Orb': 0.1,
-            'Orb of Jewellers': 0.1,
-            'Orb of Fusing': 0.1,
-            'Eternal Orb': 500.0,
-            'Essence': 5.0,  # Average essence cost
-            'Fossil': 3.0,   # Average fossil cost
-            'Resonator': 2.0 # Average resonator cost
-        }
+        # Dynamic currency costs (updated from market API)
+        self.market_api = poe_market
+        self.price_optimizer = price_optimizer
+        self.currency_costs = self.market_api.get_all_currency_prices()
+        self.last_price_update = datetime.now()
+        
+        # Start price update timer
+        self.start_price_updater()
+        
+        # Initialize OCR functionality
+        self.item_detection = ItemDetectionGUI(self)
+        
+        # Initialize session tracking
+        self.session_tracker = session_tracker
+        self.current_session_id = None
+        
+        # Load user preferences
+        self.load_user_preferences()
+        
+        # Initialize performance optimization
+        optimize_tkinter_performance(self.root)
+        self.performance_optimizer = initialize_performance_optimizer(self)
         
         self.setup_ui()
+    
+    def start_price_updater(self):
+        """Start background price updater for real-time market data"""
+        def update_prices():
+            while True:
+                try:
+                    # Update currency prices every 5 minutes
+                    self.currency_costs = self.market_api.get_all_currency_prices()
+                    self.last_price_update = datetime.now()
+                    
+                    # Update UI status if needed
+                    self.root.after(0, self.update_price_status)
+                    
+                    time.sleep(300)  # 5 minutes
+                except Exception as e:
+                    print(f"Price update error: {e}")
+                    time.sleep(60)  # Retry in 1 minute on error
+                    
+        thread = threading.Thread(target=update_prices, daemon=True)
+        thread.start()
+    
+    def update_price_status(self):
+        """Update price status in UI"""
+        if hasattr(self, 'status_label'):
+            api_status = self.market_api.get_api_status()
+            if api_status['connected']:
+                status_text = f"Market: Live • Updated: {self.last_price_update.strftime('%H:%M')}"
+                self.status_label.config(text=status_text, fg='green')
+            else:
+                self.status_label.config(text="Market: Offline • Using fallback prices", fg='orange')
         
     def load_modifier_database(self) -> Dict:
         """Load comprehensive modifier database with enhanced recognition patterns"""
@@ -229,6 +267,11 @@ class IntelligentPOECraftHelper:
                               font=("Arial", 16, "bold"), fg='#2E86AB')
         title_label.pack(pady=10)
         
+        # Market status label
+        self.status_label = tk.Label(self.root, text="Market: Connecting...", 
+                                   font=("Arial", 9), fg='orange')
+        self.status_label.pack()
+        
         # Main container
         main_frame = tk.Frame(self.root)
         main_frame.pack(fill='both', expand=True, padx=10, pady=5)
@@ -309,13 +352,59 @@ class IntelligentPOECraftHelper:
         self.results_text = scrolledtext.ScrolledText(results_frame, height=20, width=80, font=("Consolas", 9))
         self.results_text.pack(fill='both', expand=True)
         
-        # Control buttons
+        # Enhanced control buttons
         control_frame = tk.Frame(self.root)
         control_frame.pack(fill='x', padx=10, pady=5)
-        tk.Button(control_frame, text="Clear All", command=self.clear_all, 
-                 bg='#f44336', fg='white').pack(side='left')
-        tk.Button(control_frame, text="Toggle Overlay", 
-                 command=self.toggle_overlay).pack(side='right')
+        
+        # Left side buttons
+        left_controls = tk.Frame(control_frame)
+        left_controls.pack(side='left')
+        tk.Button(left_controls, text="Clear All", command=self.clear_all, 
+                 bg='#f44336', fg='white').pack(side='left', padx=2)
+        tk.Button(left_controls, text="Refresh Prices", command=self.refresh_prices,
+                 bg='#2196F3', fg='white').pack(side='left', padx=2)
+        tk.Button(left_controls, text="Detect Item", command=self.open_item_detection,
+                 bg='#9C27B0', fg='white').pack(side='left', padx=2)
+        
+        # Right side buttons  
+        right_controls = tk.Frame(control_frame)
+        right_controls.pack(side='right')
+        tk.Button(right_controls, text="Toggle Overlay", 
+                 command=self.toggle_overlay).pack(side='right', padx=2)
+        tk.Button(right_controls, text="Multi-Monitor", 
+                 command=self.setup_multi_monitor).pack(side='right', padx=2)
+        tk.Button(right_controls, text="Analytics", 
+                 command=self.open_session_analytics).pack(side='right', padx=2)
+        
+        # Overlay controls frame
+        overlay_frame = tk.Frame(self.root)
+        overlay_frame.pack(fill='x', padx=10, pady=2)
+        
+        # Transparency control
+        tk.Label(overlay_frame, text="Opacity:", font=("Arial", 9)).pack(side='left')
+        self.opacity_var = tk.DoubleVar(value=0.95)
+        opacity_scale = tk.Scale(overlay_frame, from_=0.3, to=1.0, resolution=0.05,
+                               orient='horizontal', variable=self.opacity_var,
+                               command=self.update_opacity, length=100)
+        opacity_scale.pack(side='left', padx=5)
+        
+        # Position presets
+        tk.Label(overlay_frame, text="Position:", font=("Arial", 9)).pack(side='left', padx=(10,0))
+        position_frame = tk.Frame(overlay_frame)
+        position_frame.pack(side='left', padx=5)
+        tk.Button(position_frame, text="TL", command=lambda: self.set_position('top-left'), 
+                 width=3).pack(side='left', padx=1)
+        tk.Button(position_frame, text="TR", command=lambda: self.set_position('top-right'), 
+                 width=3).pack(side='left', padx=1)
+        tk.Button(position_frame, text="BL", command=lambda: self.set_position('bottom-left'), 
+                 width=3).pack(side='left', padx=1)
+        tk.Button(position_frame, text="BR", command=lambda: self.set_position('bottom-right'), 
+                 width=3).pack(side='left', padx=1)
+        
+        # Performance monitor (optional, compact display)
+        if hasattr(self, 'performance_optimizer'):
+            perf_frame = self.performance_optimizer.create_performance_widget(overlay_frame)
+            perf_frame.pack(side='right', padx=10)
         
     def suggest_modifiers(self):
         """Suggest popular modifiers based on item type"""
@@ -361,9 +450,19 @@ class IntelligentPOECraftHelper:
         # Select best method if auto
         if method == "auto":
             method = self.select_best_method(modifier_analysis, budget)
-            
+        
+        # Start crafting session tracking
+        session_id = self.start_crafting_session(base_item, target_mods, method, budget)
+        
         # Generate detailed plan
         plan = self.generate_detailed_plan(base_item, target_mods, method, modifier_analysis, budget, ilvl)
+        
+        # Add session info to plan
+        if session_id:
+            plan += f"\n📊 SESSION TRACKING:\n"
+            plan += f"Session ID: {session_id}\n"
+            plan += f"Started: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n"
+            plan += f"Use the Analytics button to track your progress!\n"
         
         self.results_text.delete("1.0", tk.END)
         self.results_text.insert("1.0", plan)
@@ -429,26 +528,96 @@ class IntelligentPOECraftHelper:
         return analysis
         
     def select_best_method(self, analysis: Dict, budget: float) -> str:
-        """Select the best crafting method based on analysis"""
+        """Select optimal crafting method using market price analysis"""
         if not analysis['compatible']:
             return "chaos_spam"  # Fallback
             
         mod_count = len(analysis['modifiers'])
         total_weight = analysis['total_weight']
+        current_prices = self.currency_costs
         
-        # For 1-2 specific modifiers, alt+regal is often best
-        if mod_count <= 2 and total_weight < 1000:
-            return "alt_regal"
+        # Calculate cost efficiency for each method
+        methods = []
+        
+        # Chaos spam method
+        chaos_cost = (200 + (total_weight * 0.5)) * current_prices.get('Chaos Orb', 1.0)
+        chaos_cost += max(1, mod_count // 2) * current_prices.get('Divine Orb', 15.0)
+        chaos_cost += mod_count * current_prices.get('Orb of Annulment', 8.0)
+        methods.append({
+            'name': 'chaos_spam',
+            'cost': chaos_cost,
+            'success_rate': 0.7,  # Baseline success rate
+            'efficiency': 0.7 / max(chaos_cost, 1)
+        })
+        
+        # Alt-regal method (good for 1-2 mods)
+        if mod_count <= 2:
+            alt_cost = (50 + (total_weight * 0.2)) * current_prices.get('Orb of Alteration', 0.1)
+            alt_cost += mod_count * current_prices.get('Regal Orb', 2.0)
+            alt_cost += max(0, mod_count - 1) * current_prices.get('Exalted Orb', 200.0)
+            methods.append({
+                'name': 'alt_regal',
+                'cost': alt_cost,
+                'success_rate': 0.5,
+                'efficiency': 0.5 / max(alt_cost, 1)
+            })
+        
+        # Essence method
+        essence_cost = mod_count * current_prices.get('Essence', 5.0)
+        essence_cost += 100 * current_prices.get('Chaos Orb', 1.0)
+        essence_cost += mod_count * current_prices.get('Orb of Annulment', 8.0)
+        methods.append({
+            'name': 'essence',
+            'cost': essence_cost,
+            'success_rate': 0.8,
+            'efficiency': 0.8 / max(essence_cost, 1)
+        })
+        
+        # Fossil method  
+        fossil_cost = mod_count * current_prices.get('Fossil', 3.0)
+        fossil_cost += mod_count * current_prices.get('Resonator', 2.0)
+        fossil_cost += 50 * current_prices.get('Chaos Orb', 1.0)
+        methods.append({
+            'name': 'fossil',
+            'cost': fossil_cost,
+            'success_rate': 0.6,
+            'efficiency': 0.6 / max(fossil_cost, 1)
+        })
+        
+        # Filter methods within budget
+        affordable_methods = [m for m in methods if m['cost'] <= budget]
+        
+        if affordable_methods:
+            # Select most efficient method within budget
+            best_method = max(affordable_methods, key=lambda x: x['efficiency'])
+            return best_method['name']
+        else:
+            # If nothing is affordable, choose cheapest
+            cheapest = min(methods, key=lambda x: x['cost'])
+            return cheapest['name']
+    
+    def optimize_budget_allocation(self, target_mods: List[str], budget: float) -> str:
+        """Generate optimized budget allocation using market API"""
+        try:
+            optimization = self.price_optimizer.optimize_crafting_budget(target_mods, budget)
             
-        # For 3+ modifiers, essence or fossil might be better
-        if mod_count >= 3:
-            if budget > 500:  # High budget
-                return "essence"
-            else:
-                return "fossil"
+            plan = "\n🎯 BUDGET OPTIMIZATION:\n"
+            plan += "-" * 40 + "\n"
+            plan += f"Total Budget: {budget:.1f} chaos orbs\n\n"
+            
+            plan += "RECOMMENDED ALLOCATION:\n"
+            for currency, details in optimization.get('allocation', {}).items():
+                plan += f"• {currency}: {details['currency_amount']:.1f} units ({details['chaos_allocated']:.1f}c)\n"
                 
-        # Default to chaos spam for complex cases
-        return "chaos_spam"
+            remaining = optimization.get('remaining_budget', 0)
+            if remaining > 0:
+                plan += f"\nRemaining Budget: {remaining:.1f}c (for contingencies)\n"
+                
+            plan += f"\nOptimization calculated at: {optimization.get('optimization_timestamp', 'Unknown')}\n"
+            return plan
+            
+        except Exception as e:
+            return f"\n⚠ Budget optimization failed: {e}\n"
         
     def generate_detailed_plan(self, base_item: str, target_mods: List[str], 
                              method: str, analysis: Dict, budget: float, ilvl: int) -> str:
@@ -501,6 +670,9 @@ class IntelligentPOECraftHelper:
             
         # Cost estimation
         plan += self.estimate_costs(method, analysis, budget)
+        
+        # Budget optimization
+        plan += self.optimize_budget_allocation(target_mods, budget)
         
         # Success probability
         plan += self.calculate_success_probability(method, analysis)
@@ -707,40 +879,76 @@ class IntelligentPOECraftHelper:
         return plan
         
     def estimate_costs(self, method: str, analysis: Dict, budget: float) -> str:
-        """Estimate crafting costs"""
-        plan = "COST ESTIMATION:\n"
-        plan += "-" * 20 + "\n"
+        """Estimate crafting costs using real-time market prices"""
+        plan = "COST ESTIMATION (Live Market Prices):\n"
+        plan += "-" * 40 + "\n"
+        
+        # Get current market prices
+        current_prices = self.currency_costs
+        total_chaos_cost = 0
         
         if method == "chaos_spam":
-            estimated_cost = 200 + (analysis['total_weight'] * 0.5)
-            plan += f"• Estimated Chaos Orbs needed: {estimated_cost:.0f}\n"
-            plan += f"• Additional Divine Orbs: {max(1, len(analysis['modifiers']) // 2)}\n"
-            plan += f"• Additional Annulment Orbs: {len(analysis['modifiers'])}\n"
+            base_attempts = 200 + (analysis['total_weight'] * 0.5)
+            chaos_cost = base_attempts * current_prices.get('Chaos Orb', 1.0)
+            divine_count = max(1, len(analysis['modifiers']) // 2)
+            divine_cost = divine_count * current_prices.get('Divine Orb', 15.0)
+            annul_count = len(analysis['modifiers'])
+            annul_cost = annul_count * current_prices.get('Orb of Annulment', 8.0)
+            
+            total_chaos_cost = chaos_cost + divine_cost + annul_cost
+            
+            plan += f"• Chaos Orbs needed: {base_attempts:.0f} = {chaos_cost:.1f}c\n"
+            plan += f"• Divine Orbs: {divine_count} × {current_prices.get('Divine Orb', 15.0):.1f}c = {divine_cost:.1f}c\n"
+            plan += f"• Annulment Orbs: {annul_count} × {current_prices.get('Orb of Annulment', 8.0):.1f}c = {annul_cost:.1f}c\n"
             
         elif method == "alt_regal":
-            estimated_cost = 50 + (analysis['total_weight'] * 0.2)
-            plan += f"• Estimated Alteration Orbs: {estimated_cost:.0f}\n"
-            plan += f"• Regal Orbs: {len(analysis['modifiers'])}\n"
-            plan += f"• Exalted Orbs: {len(analysis['modifiers']) - 1}\n"
+            alt_attempts = 50 + (analysis['total_weight'] * 0.2)
+            alt_cost = alt_attempts * current_prices.get('Orb of Alteration', 0.1)
+            regal_count = len(analysis['modifiers'])
+            regal_cost = regal_count * current_prices.get('Regal Orb', 2.0)
+            ex_count = max(0, len(analysis['modifiers']) - 1)
+            ex_cost = ex_count * current_prices.get('Exalted Orb', 200.0)
+            
+            total_chaos_cost = alt_cost + regal_cost + ex_cost
+            
+            plan += f"• Alteration Orbs: {alt_attempts:.0f} × {current_prices.get('Orb of Alteration', 0.1):.3f}c = {alt_cost:.1f}c\n"
+            plan += f"• Regal Orbs: {regal_count} × {current_prices.get('Regal Orb', 2.0):.1f}c = {regal_cost:.1f}c\n"
+            plan += f"• Exalted Orbs: {ex_count} × {current_prices.get('Exalted Orb', 200.0):.1f}c = {ex_cost:.1f}c\n"
             
         elif method == "essence":
-            estimated_cost = len(analysis['modifiers']) * 50
-            plan += f"• Essence costs: {estimated_cost} chaos\n"
-            plan += f"• Additional Chaos Orbs: 100\n"
+            essence_count = len(analysis['modifiers'])
+            essence_cost = essence_count * current_prices.get('Essence', 5.0)
+            chaos_cost = 100 * current_prices.get('Chaos Orb', 1.0)
+            annul_cost = essence_count * current_prices.get('Orb of Annulment', 8.0)
+            
+            total_chaos_cost = essence_cost + chaos_cost + annul_cost
+            
+            plan += f"• Essences: {essence_count} × {current_prices.get('Essence', 5.0):.1f}c = {essence_cost:.1f}c\n"
+            plan += f"• Chaos Orbs: 100 × {current_prices.get('Chaos Orb', 1.0):.1f}c = {chaos_cost:.1f}c\n"
+            plan += f"• Annulment Orbs: {essence_count} × {current_prices.get('Orb of Annulment', 8.0):.1f}c = {annul_cost:.1f}c\n"
             
         elif method == "fossil":
-            estimated_cost = len(analysis['modifiers']) * 30
-            plan += f"• Fossil costs: {estimated_cost} chaos\n"
-            plan += f"• Resonator costs: {len(analysis['modifiers']) * 10} chaos\n"
+            fossil_count = len(analysis['modifiers'])
+            fossil_cost = fossil_count * current_prices.get('Fossil', 3.0)
+            resonator_cost = fossil_count * current_prices.get('Resonator', 2.0)
+            chaos_cost = 50 * current_prices.get('Chaos Orb', 1.0)
+            
+            total_chaos_cost = fossil_cost + resonator_cost + chaos_cost
+            
+            plan += f"• Fossils: {fossil_count} × {current_prices.get('Fossil', 3.0):.1f}c = {fossil_cost:.1f}c\n"
+            plan += f"• Resonators: {fossil_count} × {current_prices.get('Resonator', 2.0):.1f}c = {resonator_cost:.1f}c\n"
+            plan += f"• Chaos Orbs: 50 × {current_prices.get('Chaos Orb', 1.0):.1f}c = {chaos_cost:.1f}c\n"
             
         else:
-            estimated_cost = 100
-            plan += f"• Base crafting costs: {estimated_cost} chaos\n"
+            total_chaos_cost = 100
+            plan += f"• Base crafting costs: {total_chaos_cost:.1f}c\n"
             
-        plan += f"• Total estimated cost: {estimated_cost:.0f} chaos\n"
+        plan += f"\n💰 TOTAL ESTIMATED COST: {total_chaos_cost:.1f} chaos orbs\n"
         
-        if estimated_cost > budget:
-            plan += f"⚠ WARNING: Estimated cost ({estimated_cost:.0f}) exceeds budget ({budget})\n"
+        # Budget analysis with cost efficiency
+        if total_chaos_cost > budget:
+            over_budget = total_chaos_cost - budget
+            plan += f"⚠ WARNING: Cost ({total_chaos_cost:.1f}c) exceeds budget ({budget}c) by {over_budget:.1f}c\n"
         else:
             plan += f"✅ Budget sufficient for this method\n"
             
@@ -826,8 +1034,211 @@ class IntelligentPOECraftHelper:
     def toggle_overlay(self):
         current = self.root.attributes('-topmost')
         self.root.attributes('-topmost', not current)
+    
+    def refresh_prices(self):
+        """Manually refresh market prices"""
+        try:
+            self.market_api.update_all_prices()
+            self.currency_costs = self.market_api.get_all_currency_prices()
+            self.last_price_update = datetime.now()
+            self.update_price_status()
+            messagebox.showinfo("Success", "Market prices refreshed successfully!")
+        except Exception as e:
+            messagebox.showerror("Error", f"Failed to refresh prices: {e}")
+    
+    def update_opacity(self, value):
+        """Update window opacity"""
+        try:
+            opacity = float(value)
+            self.root.attributes('-alpha', opacity)
+        except Exception as e:
+            print(f"Error setting opacity: {e}")
+    
+    def set_position(self, position):
+        """Set window position based on preset"""
+        try:
+            # Get screen dimensions
+            screen_width = self.root.winfo_screenwidth()
+            screen_height = self.root.winfo_screenheight()
+            
+            # Get window dimensions
+            self.root.update_idletasks()
+            window_width = self.root.winfo_width()
+            window_height = self.root.winfo_height()
+            
+            # Calculate positions
+            positions = {
+                'top-left': (50, 50),
+                'top-right': (screen_width - window_width - 50, 50),
+                'bottom-left': (50, screen_height - window_height - 100),
+                'bottom-right': (screen_width - window_width - 50, screen_height - window_height - 100),
+            }
+            
+            if position in positions:
+                x, y = positions[position]
+                self.root.geometry(f"+{x}+{y}")
+        except Exception as e:
+            print(f"Error setting position: {e}")
+    
+    def setup_multi_monitor(self):
+        """Setup multi-monitor overlay functionality"""
+        try:
+            # Create a new window for second monitor
+            if hasattr(self, 'secondary_window') and self.secondary_window.winfo_exists():
+                self.secondary_window.destroy()
+            
+            self.secondary_window = tk.Toplevel(self.root)
+            self.secondary_window.title("PoE Helper - Monitor 2")
+            self.secondary_window.geometry("400x300")
+            self.secondary_window.attributes('-topmost', True)
+            self.secondary_window.attributes('-alpha', 0.9)
+            
+            # Add essential info to secondary window
+            tk.Label(self.secondary_window, text="Quick Price Reference", 
+                    font=("Arial", 12, "bold")).pack(pady=10)
+            
+            # Currency prices display
+            price_frame = tk.Frame(self.secondary_window)
+            price_frame.pack(fill='both', expand=True, padx=10)
+            
+            key_currencies = ['Divine Orb', 'Exalted Orb', 'Orb of Annulment', 'Orb of Scouring']
+            for currency in key_currencies:
+                price = self.currency_costs.get(currency, 0)
+                tk.Label(price_frame, text=f"{currency}: {price:.1f}c", 
+                        font=("Arial", 10)).pack(anchor='w')
+            
+            # Position on second monitor (if available)
+            try:
+                screen_width = self.root.winfo_screenwidth()
+                self.secondary_window.geometry(f"+{screen_width + 50}+50")
+            except:
+                self.secondary_window.geometry("+900+50")
+                
+            messagebox.showinfo("Multi-Monitor", "Secondary monitor window created!")
+            
+        except Exception as e:
+            messagebox.showerror("Error", f"Failed to setup multi-monitor: {e}")
+    
+    def open_item_detection(self):
+        """Open item detection window"""
+        try:
+            self.item_detection.open_detection_window()
+        except Exception as e:
+            messagebox.showerror("Error", f"Failed to open item detection: {e}")
+    
+    def load_user_preferences(self):
+        """Load and apply user preferences"""
+        try:
+            prefs = self.session_tracker.preferences
+            
+            # Apply overlay preferences
+            if hasattr(self, 'root'):
+                self.root.attributes('-alpha', prefs.overlay_opacity)
+            
+            # Store for later use in UI setup
+            self.user_preferences = prefs
+            
+        except Exception as e:
+            print(f"Error loading preferences: {e}")
+    
+    def start_crafting_session(self, base_item: str, target_mods: List[str], method: str, budget: float):
+        """Start tracking a new crafting session"""
+        try:
+            self.current_session_id = self.session_tracker.start_session(
+                base_item, target_mods, method, budget
+            )
+            return self.current_session_id
+        except Exception as e:
+            print(f"Error starting session: {e}")
+            return None
+    
+    def end_crafting_session(self, actual_cost: Optional[float] = None, 
+                           success: Optional[bool] = None, notes: str = ""):
+        """End the current crafting session"""
+        if self.current_session_id:
+            try:
+                result = self.session_tracker.end_session(actual_cost, success, notes)
+                self.current_session_id = None
+                return result
+            except Exception as e:
+                print(f"Error ending session: {e}")
+                return False
+        return False
+    
+    def open_session_analytics(self):
+        """Open session analytics window"""
+        try:
+            analytics_window = tk.Toplevel(self.root)
+            analytics_window.title("Crafting Analytics")
+            analytics_window.geometry("600x500")
+            analytics_window.attributes('-topmost', True)
+            
+            # Get analytics data
+            analytics = self.session_tracker.get_analytics(30)
+            recent_sessions = self.session_tracker.get_session_history(10)
+            
+            # Title
+            tk.Label(analytics_window, text="Crafting Analytics (Last 30 Days)", 
+                    font=("Arial", 14, "bold")).pack(pady=10)
+            
+            # Analytics display
+            analytics_text = tk.Text(analytics_window, height=25, width=70, font=("Consolas", 10))
+            analytics_text.pack(fill='both', expand=True, padx=10, pady=5)
+            
+            # Format analytics data
+            output = "CRAFTING STATISTICS\n"
+            output += "=" * 50 + "\n\n"
+            
+            if analytics:
+                output += f"Total Sessions: {analytics.get('total_sessions', 0)}\n"
+                output += f"Successful Sessions: {analytics.get('successful_sessions', 0)}\n"
+                output += f"Success Rate: {analytics.get('success_rate', 0):.1f}%\n"
+                output += f"Total Cost: {analytics.get('total_cost', 0):.1f} chaos\n"
+                output += f"Average Cost: {analytics.get('average_cost', 0):.1f} chaos\n"
+                output += f"Most Used Method: {analytics.get('most_used_method', 'None')}\n"
+                output += f"Most Crafted Base: {analytics.get('most_crafted_base', 'None')}\n\n"
+            
+            output += "RECENT SESSIONS\n"
+            output += "-" * 30 + "\n"
+            
+            for i, session in enumerate(recent_sessions[:5], 1):
+                output += f"{i}. {session['item_base']} - {session['method_used']}\n"
+                output += f"   Budget: {session['budget_allocated']:.1f}c"
+                if session['actual_cost']:
+                    output += f" | Cost: {session['actual_cost']:.1f}c"
+                if session['success'] is not None:
+                    output += f" | {'✅ Success' if session['success'] else '❌ Failed'}"
+                output += "\n\n"
+            
+            analytics_text.insert(tk.END, output)
+            analytics_text.config(state='disabled')
+            
+        except Exception as e:
+            messagebox.showerror("Error", f"Failed to open analytics: {e}")
         
+    def cleanup_on_exit(self):
+        """Cleanup resources before exit"""
+        try:
+            # End current session if active
+            if self.current_session_id:
+                self.end_crafting_session(notes="Application closed")
+            
+            # Stop performance monitoring
+            if hasattr(self, 'performance_optimizer'):
+                self.performance_optimizer.stop_monitoring()
+                
+            # Save final preferences
+            if hasattr(self, 'user_preferences'):
+                self.session_tracker.save_preferences(self.user_preferences)
+                
+            print("Cleanup completed successfully")
+            
+        except Exception as e:
+            print(f"Cleanup error: {e}")
+    
     def run(self):
+        # Set up cleanup on window close
+        self.root.protocol("WM_DELETE_WINDOW", lambda: [self.cleanup_on_exit(), self.root.destroy()])
         self.root.mainloop()
 
 if __name__ == "__main__":
