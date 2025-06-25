@@ -4,7 +4,6 @@ Optimizes resource usage, memory management, and UI responsiveness
 """
 
 import gc
-import psutil
 import threading
 import time
 from typing import Dict, Any, Callable
@@ -12,6 +11,14 @@ import weakref
 from dataclasses import dataclass
 from datetime import datetime
 import tkinter as tk
+
+# Try to import psutil, fallback to None if not available
+try:
+    import psutil
+    PSUTIL_AVAILABLE = True
+except ImportError:
+    psutil = None
+    PSUTIL_AVAILABLE = False
 
 
 @dataclass
@@ -84,16 +91,23 @@ class PerformanceOptimizer:
     def collect_metrics(self) -> PerformanceMetrics:
         """Collect current performance metrics"""
         try:
-            process = psutil.Process()
-            
-            # CPU and memory usage
-            cpu_usage = process.cpu_percent()
-            memory_info = process.memory_info()
-            memory_mb = memory_info.rss / 1024 / 1024
-            memory_percent = process.memory_percent()
-            
-            # Thread count
-            thread_count = process.num_threads()
+            if PSUTIL_AVAILABLE:
+                process = psutil.Process()
+                
+                # CPU and memory usage
+                cpu_usage = process.cpu_percent()
+                memory_info = process.memory_info()
+                memory_mb = memory_info.rss / 1024 / 1024
+                memory_percent = process.memory_percent()
+                
+                # Thread count
+                thread_count = process.num_threads()
+            else:
+                # Fallback values when psutil is not available
+                cpu_usage = 0.0
+                memory_mb = 0.0
+                memory_percent = 0.0
+                thread_count = threading.active_count()
             
             # UI response time (simplified)
             ui_start = time.time()
@@ -297,12 +311,12 @@ class PerformanceOptimizer:
         """Perform startup optimizations"""
         try:
             # Set process priority to normal (not high)
-            try:
-                import psutil
-                process = psutil.Process()
-                process.nice(0)  # Normal priority
-            except:
-                pass
+            if PSUTIL_AVAILABLE:
+                try:
+                    process = psutil.Process()
+                    process.nice(0)  # Normal priority
+                except:
+                    pass
                 
             # Optimize garbage collection
             gc.set_threshold(700, 10, 10)  # More aggressive GC
