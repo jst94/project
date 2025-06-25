@@ -11,7 +11,8 @@ a = Analysis(
         'cv2', 'numpy', 'PIL', 'PIL._tkinter_finder',
         'tkinter', 'tkinter.ttk', 'tkinter.scrolledtext', 'tkinter.messagebox',
         'pytesseract', 'requests', 'json', 'threading', 'time', 'datetime',
-        'random', 'os', 're', 'market_api', 'session_tracker', 'performance_optimizer'
+        'random', 'os', 're', 'market_api', 'session_tracker', 'performance_optimizer',
+        'psutil'
     ],
     hookspath=[],
     hooksconfig={},
