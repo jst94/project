@@ -1,19 +1,21 @@
 # -*- mode: python ; coding: utf-8 -*-
+from PyInstaller.utils.hooks import collect_submodules
 
+hiddenimports = ['psutil']
+hiddenimports += collect_submodules('psutil')
 
 a = Analysis(
     ['poe_craft_helper.py'],
     pathex=[],
     binaries=[],
     datas=[],
-    hiddenimports=[
+    hiddenimports=hiddenimports + [
         'cv2', 'numpy', 'PIL', 'PIL._tkinter_finder',
         'tkinter', 'tkinter.ttk', 'tkinter.scrolledtext', 'tkinter.messagebox',
         'pytesseract', 'requests', 'json', 'threading', 'time', 'datetime',
-        'random', 'os', 're', 'market_api', 'session_tracker', 'performance_optimizer',
-        'psutil', 'psutil._common', 'psutil._psutil_windows', 'psutil._psutil_posix'
+        'random', 'os', 're', 'market_api', 'session_tracker', 'performance_optimizer'
     ],
-    hookspath=[],
+    hookspath=['.'],
     hooksconfig={},
     runtime_hooks=[],
     excludes=[],

@@ -1,46 +1,39 @@
 # -*- mode: python ; coding: utf-8 -*-
+from PyInstaller.utils.hooks import collect_submodules
 
-block_cipher = None
+hiddenimports = ['psutil']
+hiddenimports += collect_submodules('psutil')
+
 
 a = Analysis(
     ['poe_craft_helper.py'],
     pathex=[],
     binaries=[],
     datas=[],
-    hiddenimports=[
-        'cv2', 'numpy', 'PIL', 'PIL._tkinter_finder',
-        'tkinter', 'tkinter.ttk', 'tkinter.scrolledtext', 'tkinter.messagebox',
-        'pytesseract', 'requests', 'json', 'threading', 'time', 'datetime',
-        'random', 'os', 're', 'market_api', 'session_tracker', 'performance_optimizer',
-        'psutil'
-    ],
+    hiddenimports=hiddenimports,
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
     excludes=[],
-    win_no_prefer_redirects=False,
-    win_private_assemblies=False,
-    cipher=block_cipher,
     noarchive=False,
+    optimize=0,
 )
-
-pyz = PYZ(a.pure, a.zipped_data, cipher=block_cipher)
+pyz = PYZ(a.pure)
 
 exe = EXE(
     pyz,
     a.scripts,
     a.binaries,
-    a.zipfiles,
     a.datas,
     [],
-    name='PoE_Craft_Helper',
+    name='poe_craft_helper',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
     upx=True,
     upx_exclude=[],
     runtime_tmpdir=None,
-    console=False,
+    console=True,
     disable_windowed_traceback=False,
     argv_emulation=False,
     target_arch=None,
