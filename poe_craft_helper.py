@@ -11,6 +11,9 @@ from market_api import poe_market, price_optimizer
 from ocr_analyzer import ItemDetectionGUI
 from session_tracker import session_tracker
 from performance_optimizer import initialize_performance_optimizer, optimize_tkinter_performance
+from ai_crafting_optimizer import ai_optimizer, CraftingScenario
+from intelligent_ocr import intelligent_ocr
+from probability_engine import probability_engine
 
 class IntelligentPOECraftHelper:
     def __init__(self):
@@ -34,6 +37,13 @@ class IntelligentPOECraftHelper:
         
         # Initialize OCR functionality
         self.item_detection = ItemDetectionGUI(self)
+        self.intelligent_ocr = intelligent_ocr
+        
+        # Initialize AI optimizer
+        self.ai_optimizer = ai_optimizer
+        
+        # Initialize probability engine
+        self.probability_engine = probability_engine
         
         # Initialize session tracking
         self.session_tracker = session_tracker
@@ -428,7 +438,7 @@ class IntelligentPOECraftHelper:
         self.target_text.insert("1.0", current_text.strip())
         
     def generate_intelligent_plan(self):
-        """Generate an intelligent crafting plan"""
+        """Generate an AI-enhanced intelligent crafting plan"""
         base_item = self.base_entry.get().strip()
         target_mods = self.target_text.get("1.0", tk.END).strip().split('\n')
         target_mods = [mod.strip() for mod in target_mods if mod.strip()]
@@ -443,19 +453,37 @@ class IntelligentPOECraftHelper:
         if not target_mods:
             messagebox.showerror("Error", "Please enter target modifiers!")
             return
-            
-        # Analyze modifiers
-        modifier_analysis = self.analyze_modifiers(target_mods, ilvl)
         
-        # Select best method if auto
+        # Create AI crafting scenario
+        scenario = CraftingScenario(
+            target_modifiers=target_mods,
+            item_base=base_item,
+            item_level=ilvl,
+            budget=budget,
+            league_meta={'current_league': 'Necropolis'},
+            user_preferences=self.get_user_ai_preferences()
+        )
+        
+        # Calculate precise probabilities
+        probability_analysis = self.probability_engine.calculate_exact_probabilities(
+            target_mods, base_item, ilvl, method if method != "auto" else "chaos_spam"
+        )
+        
+        # Use AI optimizer if method is auto
         if method == "auto":
-            method = self.select_best_method(modifier_analysis, budget)
+            ai_plan = self.ai_optimizer.generate_adaptive_plan(scenario)
+            plan = self.format_ai_plan(ai_plan)
+            # Add probability analysis to AI plan
+            plan += self.format_probability_analysis(probability_analysis)
+        else:
+            # Enhanced analysis with probability engine
+            modifier_analysis = self.analyze_modifiers(target_mods, ilvl)
+            plan = self.generate_detailed_plan(base_item, target_mods, method, modifier_analysis, budget, ilvl)
+            # Add detailed probability analysis
+            plan += self.format_probability_analysis(probability_analysis)
         
         # Start crafting session tracking
         session_id = self.start_crafting_session(base_item, target_mods, method, budget)
-        
-        # Generate detailed plan
-        plan = self.generate_detailed_plan(base_item, target_mods, method, modifier_analysis, budget, ilvl)
         
         # Add session info to plan
         if session_id:
@@ -1235,6 +1263,160 @@ class IntelligentPOECraftHelper:
             
         except Exception as e:
             print(f"Cleanup error: {e}")
+    
+    def get_user_ai_preferences(self) -> Dict:
+        """Get user preferences for AI optimization"""
+        return {
+            'method_preferences': {
+                'chaos_spam': 0.6,
+                'alt_regal': 0.7,
+                'essence': 0.8,
+                'fossil': 0.5
+            },
+            'risk_tolerance': getattr(self, 'user_preferences', {}).get('risk_tolerance', 0.5),
+            'time_preference': 0.7,  # Prefers faster methods
+            'cost_sensitivity': 0.8   # Cost-conscious
+        }
+    
+    def format_ai_plan(self, ai_plan: Dict) -> str:
+        """Format AI-generated plan for display"""
+        plan = "🤖 AI-ENHANCED CRAFTING PLAN\n"
+        plan += "=" * 60 + "\n\n"
+        
+        # Scenario analysis
+        scenario = ai_plan.get('scenario_analysis', {})
+        plan += f"🎯 SCENARIO ANALYSIS:\n"
+        plan += f"• Complexity Score: {scenario.get('complexity_score', 0):.2f}\n"
+        plan += f"• Recommended Strategy: {scenario.get('recommended_strategy', 'unknown').upper()}\n"
+        plan += f"• AI Confidence: {scenario.get('confidence_level', 0)*100:.1f}%\n\n"
+        
+        # Strategy rankings
+        rankings = ai_plan.get('strategy_rankings', [])
+        if rankings:
+            plan += f"📊 AI STRATEGY RANKINGS:\n"
+            for i, strategy in enumerate(rankings[:3], 1):
+                plan += f"{i}. {strategy['method'].upper()}\n"
+                plan += f"   • AI Score: {strategy['score']:.3f}\n"
+                plan += f"   • Success Rate: {strategy['success_rate']*100:.1f}%\n"
+                plan += f"   • Expected Cost: {strategy['expected_cost']:.1f}c\n\n"
+        
+        # Budget allocation
+        budget_alloc = ai_plan.get('budget_allocation', {})
+        if budget_alloc:
+            plan += f"💰 OPTIMIZED BUDGET ALLOCATION:\n"
+            primary = budget_alloc.get('primary_method', {})
+            plan += f"• Primary ({primary.get('method', 'unknown').upper()}): {primary.get('allocated_budget', 0):.1f}c\n"
+            plan += f"  Expected Attempts: {primary.get('expected_attempts', 0)}\n"
+            plan += f"  Success Probability: {primary.get('success_probability', 0)*100:.1f}%\n"
+            
+            backup = budget_alloc.get('backup_method', {})
+            plan += f"• Backup ({backup.get('method', 'unknown').upper()}): {backup.get('allocated_budget', 0):.1f}c\n"
+            
+            emergency = budget_alloc.get('emergency_reserve', {})
+            plan += f"• Emergency Reserve: {emergency.get('amount', 0):.1f}c\n\n"
+        
+        # Adaptive plan steps
+        adaptive_steps = ai_plan.get('adaptive_plan', [])
+        if adaptive_steps:
+            plan += f"🔄 ADAPTIVE EXECUTION PLAN:\n"
+            plan += "-" * 40 + "\n"
+            
+            for i, step in enumerate(adaptive_steps, 1):
+                phase = step.get('phase', 'unknown').upper()
+                plan += f"PHASE {i}: {phase}\n"
+                plan += f"Description: {step.get('description', '')}\n"
+                
+                actions = step.get('actions', [])
+                if actions:
+                    plan += f"Actions:\n"
+                    for action in actions:
+                        plan += f"  • {action}\n"
+                
+                if 'success_probability' in step:
+                    plan += f"Success Rate: {step['success_probability']*100:.1f}%\n"
+                if 'budget_required' in step:
+                    plan += f"Budget Required: {step['budget_required']:.1f}c\n"
+                plan += "\n"
+        
+        # Risk assessment
+        risk = ai_plan.get('risk_assessment', {})
+        if risk:
+            plan += f"⚠️ RISK ASSESSMENT:\n"
+            plan += f"• Primary Risk Level: {risk.get('primary_risk', 0)*100:.1f}%\n"
+            plan += f"• Market Volatility: {risk.get('market_volatility_factor', 0)*100:.1f}%\n"
+            
+            mitigations = risk.get('mitigation_strategies', [])
+            if mitigations:
+                plan += f"Risk Mitigations:\n"
+                for mitigation in mitigations:
+                    plan += f"  • {mitigation}\n"
+            plan += "\n"
+        
+        plan += f"🤖 AI Analysis completed at: {ai_plan.get('generated_at', 'Unknown')}\n"
+        plan += f"AI Version: {ai_plan.get('ai_version', '1.0.0')}\n"
+        
+        return plan
+    
+    def format_probability_analysis(self, probability_analysis) -> str:
+        """Format detailed probability analysis for display"""
+        plan = "\n\n📊 ADVANCED PROBABILITY ANALYSIS\n"
+        plan += "=" * 60 + "\n\n"
+        
+        # Overall probability
+        plan += f"🎯 SUCCESS PROBABILITY:\n"
+        plan += f"• Combined Success Rate: {probability_analysis.combined_probability*100:.4f}%\n"
+        plan += f"• Expected Attempts: {probability_analysis.expected_attempts:.1f}\n"
+        plan += f"• Best Case Scenario: {probability_analysis.best_case_attempts} attempts\n"
+        plan += f"• Worst Case Scenario: {probability_analysis.worst_case_attempts} attempts\n\n"
+        
+        # Individual modifier probabilities
+        if probability_analysis.individual_probabilities:
+            plan += f"🔍 INDIVIDUAL MODIFIER PROBABILITIES:\n"
+            for mod_name, prob in probability_analysis.individual_probabilities.items():
+                plan += f"• {mod_name}: {prob*100:.3f}%\n"
+            plan += "\n"
+        
+        # Cost analysis
+        cost_dist = probability_analysis.cost_distribution
+        if cost_dist:
+            plan += f"💰 COST PROBABILITY DISTRIBUTION:\n"
+            plan += f"• Expected Cost: {cost_dist.get('expected_cost', 0):.1f} chaos orbs\n"
+            plan += f"• Standard Deviation: {cost_dist.get('standard_deviation', 0):.1f}c\n"
+            
+            cost_range = cost_dist.get('cost_range_90_percent', (0, 0))
+            plan += f"• 90% Confidence Range: {cost_range[0]:.1f}c - {cost_range[1]:.1f}c\n"
+            plan += f"• Optimistic Cost: {cost_dist.get('optimistic_cost', 0):.1f}c\n"
+            plan += f"• Pessimistic Cost: {cost_dist.get('pessimistic_cost', 0):.1f}c\n\n"
+        
+        # Confidence interval
+        conf_interval = probability_analysis.confidence_interval
+        if conf_interval[0] != float('inf'):
+            plan += f"📈 CONFIDENCE INTERVALS (95%):\n"
+            plan += f"• Attempt Range: {conf_interval[0]:.1f} - {conf_interval[1]:.1f} attempts\n\n"
+        
+        # Method-specific insights
+        plan += f"⚙️ METHOD ANALYSIS ({probability_analysis.method.upper()}):\n"
+        if probability_analysis.method == 'chaos_spam':
+            plan += f"• Chaos spam provides complete randomness\n"
+            plan += f"• Success depends purely on probability mathematics\n"
+            plan += f"• Budget should account for high variance\n"
+        elif probability_analysis.method == 'alt_regal':
+            plan += f"• Alt-regal best for 1-2 specific modifiers\n"
+            plan += f"• More predictable cost than chaos spam\n"
+            plan += f"• Limited to simpler modifier combinations\n"
+        elif probability_analysis.method == 'essence':
+            plan += f"• Guarantees at least one modifier\n"
+            plan += f"• Higher success rate for compatible modifiers\n"
+            plan += f"• More expensive per attempt but more reliable\n"
+        elif probability_analysis.method == 'fossil':
+            plan += f"• Biases probabilities toward desired outcomes\n"
+            plan += f"• Better success rates than pure chaos spam\n"
+            plan += f"• Requires specific fossil combinations\n"
+        
+        plan += "\n📍 PROBABILITY ENGINE: Advanced mathematical modeling using\n"
+        plan += "   hypergeometric distributions and Monte Carlo methods\n"
+        
+        return plan
     
     def run(self):
         # Set up cleanup on window close
