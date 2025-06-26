@@ -11,6 +11,7 @@ from typing import Dict, Optional, List
 from datetime import datetime, timedelta
 import logging
 from league_config import get_current_league_api_name
+from config import DEFAULT_PRICES
 
 
 class POEMarketAPI:
