@@ -123,7 +123,7 @@ class PerformanceOptimizer:
                     # Quick connectivity check
                     status = self.app().market_api.get_api_status()
                     market_latency = time.time() - start_time
-                except:
+                except Exception:
                     market_latency = -1.0  # Error indicator
             
             return PerformanceMetrics(
@@ -315,7 +315,7 @@ class PerformanceOptimizer:
                 try:
                     process = psutil.Process()
                     process.nice(0)  # Normal priority
-                except:
+                except Exception:
                     pass
                 
             # Optimize garbage collection

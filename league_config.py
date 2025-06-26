@@ -6,6 +6,7 @@ Manages current league settings across all components
 from typing import Optional
 import json
 import os
+import logging
 from dataclasses import dataclass
 
 
@@ -87,7 +88,7 @@ class LeagueManager:
                     data = json.load(f)
                     return data.get('league_name', 'Secrets of the Atlas')
         except Exception as e:
-            print(f"Error loading league from preferences: {e}")
+            logging.error(f"Error loading league from preferences: {e}")
         
         return 'Secrets of the Atlas'  # Default fallback
     

@@ -1246,7 +1246,7 @@ class IntelligentPOECraftHelper:
             try:
                 screen_width = self.root.winfo_screenwidth()
                 self.secondary_window.geometry(f"+{screen_width + 50}+50")
-            except:
+            except Exception:
                 self.secondary_window.geometry("+900+50")
                 
             messagebox.showinfo("Multi-Monitor", "Secondary monitor window created!")

@@ -109,7 +109,7 @@ LEAGUE_CONFIG = {
 # Application Metadata
 APP_CONFIG = {
     'name': 'Intelligent PoE Craft Helper',
-    'version': '2.0.0',
+    'version': '3.26.0',
     'author': 'PoE Community',
     'description': 'AI-powered Path of Exile crafting assistant'
 }
