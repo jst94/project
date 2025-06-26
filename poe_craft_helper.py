@@ -14,6 +14,11 @@ from performance_optimizer import initialize_performance_optimizer, optimize_tki
 from ai_crafting_optimizer import ai_optimizer, CraftingScenario
 from intelligent_ocr import intelligent_ocr
 from probability_engine import probability_engine
+from market_intelligence import market_intelligence
+from enhanced_modifier_database import enhanced_modifier_db
+from intelligent_recommendations import intelligent_recommendations
+from adaptive_learning_system import learning_system
+from realtime_strategy_optimizer import realtime_optimizer
 
 class IntelligentPOECraftHelper:
     def __init__(self):
@@ -44,6 +49,16 @@ class IntelligentPOECraftHelper:
         
         # Initialize probability engine
         self.probability_engine = probability_engine
+        
+        # Initialize advanced intelligence systems
+        self.market_intelligence = market_intelligence
+        self.enhanced_modifier_db = enhanced_modifier_db
+        self.intelligent_recommendations = intelligent_recommendations
+        self.learning_system = learning_system
+        self.realtime_optimizer = realtime_optimizer
+        
+        # Set up system dependencies
+        self._setup_system_dependencies()
         
         # Initialize session tracking
         self.session_tracker = session_tracker
@@ -481,6 +496,9 @@ class IntelligentPOECraftHelper:
             plan = self.generate_detailed_plan(base_item, target_mods, method, modifier_analysis, budget, ilvl)
             # Add detailed probability analysis
             plan += self.format_probability_analysis(probability_analysis)
+        
+        # Add comprehensive intelligent recommendations
+        plan += self.generate_comprehensive_recommendations(base_item, target_mods, budget, ilvl)
         
         # Start crafting session tracking
         session_id = self.start_crafting_session(base_item, target_mods, method, budget)
@@ -1417,6 +1435,104 @@ class IntelligentPOECraftHelper:
         plan += "   hypergeometric distributions and Monte Carlo methods\n"
         
         return plan
+    
+    def _setup_system_dependencies(self):
+        """Set up dependencies between intelligence systems"""
+        try:
+            # Set dependencies for recommendation system
+            self.intelligent_recommendations.set_dependencies(
+                learning_system=self.learning_system,
+                market_intelligence=self.market_intelligence,
+                modifier_database=self.enhanced_modifier_db,
+                probability_engine=self.probability_engine
+            )
+            
+            # Set dependencies for real-time optimizer
+            self.realtime_optimizer.set_dependencies(
+                market_intelligence=self.market_intelligence,
+                probability_engine=self.probability_engine,
+                recommendation_system=self.intelligent_recommendations
+            )
+            
+            print("Intelligence system dependencies configured successfully")
+            
+        except Exception as e:
+            print(f"Error setting up system dependencies: {e}")
+    
+    def generate_comprehensive_recommendations(self, base_item: str, target_mods: List[str], 
+                                             budget: float, ilvl: int) -> str:
+        """Generate comprehensive recommendations using all intelligence systems"""
+        try:
+            from intelligent_recommendations import RecommendationContext
+            
+            # Create recommendation context
+            context = RecommendationContext(
+                user_id="default_user",  # Would be actual user ID in production
+                current_modifiers=target_mods,
+                item_base=base_item,
+                item_level=ilvl,
+                budget=budget,
+                league="Current",
+                risk_tolerance=0.5
+            )
+            
+            # Generate comprehensive recommendations
+            recommendations = self.intelligent_recommendations.generate_comprehensive_recommendations(context)
+            
+            # Format recommendations for display
+            plan = "\n\n🎯 INTELLIGENT RECOMMENDATIONS\n"
+            plan += "=" * 60 + "\n\n"
+            
+            # Overall strategy
+            plan += f"📋 OVERALL STRATEGY: {recommendations.overall_strategy.replace('_', ' ').title()}\n"
+            plan += f"🔮 CONFIDENCE SCORE: {recommendations.confidence_score*100:.1f}%\n\n"
+            
+            # High priority recommendations
+            high_priority = [r for r in recommendations.recommendations if r.priority == 'high']
+            if high_priority:
+                plan += f"🔥 HIGH PRIORITY RECOMMENDATIONS:\n"
+                for i, rec in enumerate(high_priority[:3], 1):
+                    plan += f"{i}. {rec.title}\n"
+                    plan += f"   {rec.description}\n"
+                    plan += f"   Confidence: {rec.confidence*100:.0f}%\n"
+                    if rec.reasoning:
+                        plan += f"   Reasoning: {rec.reasoning[0]}\n"
+                    plan += "\n"
+            
+            # Meta insights
+            if recommendations.meta_insights:
+                plan += f"📊 META INSIGHTS:\n"
+                alignment = recommendations.meta_insights.get('meta_alignment_score', 0)
+                plan += f"• Meta Alignment: {alignment*100:.0f}%\n"
+                
+                trending = recommendations.meta_insights.get('trending_modifiers', [])[:3]
+                if trending:
+                    plan += f"• Trending Modifiers: {', '.join([mod[0] for mod in trending])}\n"
+                plan += "\n"
+            
+            # Market timing
+            if recommendations.market_timing:
+                plan += f"📈 MARKET TIMING:\n"
+                timing_score = recommendations.market_timing.get('market_timing_score', 0)
+                plan += f"• Market Timing Score: {timing_score:.2f}\n"
+                optimal_window = recommendations.market_timing.get('optimal_window', 'unknown')
+                plan += f"• Optimal Window: {optimal_window.replace('_', ' ').title()}\n"
+                plan += "\n"
+            
+            # User insights
+            if recommendations.user_insights:
+                plan += f"👤 PERSONALIZATION:\n"
+                exp_level = recommendations.user_insights.get('experience_level', 'intermediate')
+                plan += f"• Experience Level: {exp_level.title()}\n"
+                success_rate = recommendations.user_insights.get('success_rate_history', 0.5)
+                plan += f"• Historical Success Rate: {success_rate*100:.0f}%\n"
+                confidence = recommendations.user_insights.get('personalization_confidence', 0.3)
+                plan += f"• Personalization Confidence: {confidence*100:.0f}%\n"
+            
+            return plan
+            
+        except Exception as e:
+            return f"\n\n⚠️ Error generating recommendations: {e}\n"
     
     def run(self):
         # Set up cleanup on window close
