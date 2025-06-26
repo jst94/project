@@ -32,12 +32,19 @@ An advanced AI-powered crafting assistant for Path of Exile that provides intell
 - **Personalized Recommendations**: AI-generated suggestions based on your history
 
 ### 🎯 Advanced Crafting Methods
-- **Chaos Spam**: High-risk, high-reward random crafting
-- **Alt + Regal**: Targeted crafting for specific modifiers
+- **Chaos Spam**: High-risk, high-reward random crafting for gear
+- **Alt + Regal**: Targeted crafting for specific modifiers on equipment
 - **Essence Crafting**: Guaranteed modifier crafting with essences
 - **Fossil Crafting**: Biased outcomes using fossil combinations
 - **Mastercraft**: Guaranteed modifiers from crafting bench
 - **Hybrid Methods**: AI-recommended combinations of multiple approaches
+
+### ⚗️ Specialized Flask Crafting
+- **Dedicated Flask Module**: Separate interface optimized for flask crafting
+- **Flask Type Detection**: Automatic detection of Life, Mana, Utility, and Unique flasks
+- **Modifier Database**: Complete database of all flask prefixes and suffixes
+- **Quality Optimization**: Glassblower's Bauble integration for optimal results
+- **Simulation Engine**: Test flask crafting strategies before spending currency
 
 ### ⚡ Performance & Usability
 - **Overlay Mode**: Always-on-top window for easy access during gameplay
@@ -84,6 +91,23 @@ pip install -r requirements.txt
 5. **Choose crafting method** or use "Auto" for AI recommendations
 
 6. **Generate your plan** and follow the step-by-step instructions
+
+### Flask Crafting
+
+For flask crafting, use the dedicated Flask Craft Helper:
+
+1. **Launch Flask Crafting**: Click the "⚗️ Flask Crafting" button in the main interface, or run:
+   ```bash
+   python flask_craft_helper.py
+   ```
+
+2. **Select Flask Type**: Choose from Life, Mana, Utility, or Unique flasks
+
+3. **Pick Target Modifiers**: Select from categorized prefixes and suffixes
+
+4. **Set Parameters**: Budget, risk tolerance, and time preferences
+
+5. **Generate Optimized Plan**: Get strategy comparisons and simulations
 
 ### Advanced Features
 

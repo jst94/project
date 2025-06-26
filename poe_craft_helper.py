@@ -351,7 +351,6 @@ class IntelligentPOECraftHelper:
             ("Alt + Regal", "alt_regal"),
             ("Essence Crafting", "essence"),
             ("Fossil Crafting", "fossil"),
-            ("Flask Crafting", "flask"),
             ("Mastercraft", "mastercraft")
         ]
         for text, value in methods:
@@ -393,6 +392,8 @@ class IntelligentPOECraftHelper:
                  bg='#2196F3', fg='white').pack(side='left', padx=2)
         tk.Button(left_controls, text="Detect Item", command=self.open_item_detection,
                  bg='#9C27B0', fg='white').pack(side='left', padx=2)
+        tk.Button(left_controls, text="⚗️ Flask Crafting", command=self.open_flask_crafting,
+                 bg='#00ff88', fg='black').pack(side='left', padx=2)
         
         # Right side buttons  
         right_controls = tk.Frame(control_frame)
@@ -714,8 +715,6 @@ class IntelligentPOECraftHelper:
             plan += self.generate_essence_plan(target_mods, analysis, budget)
         elif method == "fossil":
             plan += self.generate_fossil_plan(target_mods, analysis, budget)
-        elif method == "flask":
-            plan += self.generate_flask_plan(target_mods, analysis, budget)
         elif method == "mastercraft":
             plan += self.generate_mastercraft_plan(target_mods, analysis, budget)
             
@@ -919,52 +918,26 @@ class IntelligentPOECraftHelper:
         
         return plan
         
-    def generate_flask_plan(self, target_mods: List[str], analysis: Dict, budget: float) -> str:
-        """Generate flask crafting plan"""
-        plan = "FLASK CRAFTING METHOD:\n"
-        plan += "-" * 30 + "\n\n"
-        plan += f"Budget: {budget:.0f}c | Target flask modifiers: {len(target_mods)}\n\n"
-        
-        # Flask-specific analysis
-        flask_types = {
-            'life': 'Life Flask',
-            'mana': 'Mana Flask', 
-            'hybrid': 'Hybrid Flask',
-            'utility': 'Utility Flask (Diamond, Granite, etc.)',
-            'unique': 'Unique Flask'
-        }
-        
-        # Detect flask type from modifiers
-        detected_type = 'utility'  # default
-        if any('life' in mod.lower() for mod in target_mods):
-            detected_type = 'life'
-        elif any('mana' in mod.lower() for mod in target_mods):
-            detected_type = 'mana'
-        
-        plan += "EXACT STEPS TO FOLLOW:\n"
-        plan += f"1. 🛒 BUY: {int(budget * 0.4)} Orb of Alteration, {int(budget * 0.1)} Orb of Augmentation\n"
-        plan += f"2. 🛒 BUY: 3-5 Glassblower's Baubles, 2-3 Orb of Fusing (for quality)\n"
-        plan += f"3. 🎯 ACQUIRE: WHITE (normal) {flask_types.get(detected_type, 'utility flask')} with appropriate level\n"
-        plan += "4. ✨ QUALITY: Use Glassblower's Baubles to get 20% quality (increases modifier values)\n"
-        plan += "5. 🔵 MAGIC: Right-click Orb of Transmutation → Left-click flask (makes it BLUE/magic)\n"
-        plan += "6. 🎲 ROLL: Right-click Orb of Alteration → Left-click flask until you get ONE target modifier\n"
-        plan += "7. ➕ AUGMENT: If flask has only 1 modifier, use Orb of Augmentation to add 2nd\n"
-        plan += "8. 🔄 REPEAT: Steps 6-7 until you get both desired flask modifiers\n\n"
-        
-        plan += "🧪 FLASK-SPECIFIC TIPS:\n"
-        plan += f"• STOP when you see: {', '.join(target_mods)}\n"
-        plan += "• Flask modifiers are PREFIX + SUFFIX (max 1 of each)\n"
-        plan += "• Quality affects modifier values - always 20% quality first\n"
-        plan += "• Life flasks: Look for % increased recovery rate, instant recovery\n"
-        plan += "• Utility flasks: Look for % increased duration, immunity effects\n"
-        plan += f"• BUDGET LIMIT: Stop at {int(budget * 0.9)} chaos worth of currency used\n\n"
-        
-        plan += "⚠️ FLASK MODIFIER TYPES:\n"
-        plan += "• PREFIX: Recovery amount, charges used, recovery rate\n"
-        plan += "• SUFFIX: Duration, immunity, resistance, utility effects\n"
-        plan += "• Cannot have multiple prefixes or multiple suffixes\n\n"
-        
-        return plan
+    def open_flask_crafting(self):
+        """Open the dedicated flask crafting interface"""
+        try:
+            import subprocess
+            import sys
+            
+            # Launch the flask crafting helper as a separate process
+            subprocess.Popen([sys.executable, "flask_craft_helper.py"], 
+                           cwd=os.path.dirname(__file__))
+        except Exception as e:
+            messagebox.showerror("Error", f"Failed to open flask crafting: {str(e)}")
+            
+            # Fallback: show info message
+            messagebox.showinfo("Flask Crafting", 
+                              "Flask crafting has been moved to a separate specialized tool!\n\n"
+                              "Please run 'flask_craft_helper.py' for dedicated flask crafting with:\n"
+                              "• Complete flask modifier database\n"
+                              "• Flask-specific optimization\n"
+                              "• Simulation and strategy comparison\n"
+                              "• OCR support for flask detection")
         
     def generate_mastercraft_plan(self, target_mods: List[str], analysis: Dict, budget: float) -> str:
         """Generate mastercraft plan"""
@@ -1052,20 +1025,6 @@ class IntelligentPOECraftHelper:
             plan += f"• Fossils: {fossil_count} × {current_prices.get('Fossil', 3.0):.1f}c = {fossil_cost:.1f}c\n"
             plan += f"• Resonators: {fossil_count} × {current_prices.get('Resonator', 2.0):.1f}c = {resonator_cost:.1f}c\n"
             plan += f"• Chaos Orbs: 50 × {current_prices.get('Chaos Orb', 1.0):.1f}c = {chaos_cost:.1f}c\n"
-            
-        elif method == "flask":
-            alt_attempts = 50 + (len(analysis['modifiers']) * 20)  # Flask rolling is easier
-            alt_cost = alt_attempts * current_prices.get('Orb of Alteration', 0.1)
-            aug_count = max(1, len(analysis['modifiers']))
-            aug_cost = aug_count * current_prices.get('Orb of Augmentation', 0.5)
-            glassblow_count = 5
-            glassblow_cost = glassblow_count * current_prices.get("Glassblowers Bauble", 1.0)
-            
-            total_chaos_cost = alt_cost + aug_cost + glassblow_cost
-            
-            plan += f"• Alteration Orbs: {alt_attempts:.0f} × {current_prices.get('Orb of Alteration', 0.1):.3f}c = {alt_cost:.1f}c\n"
-            plan += f"• Augmentation Orbs: {aug_count} × {current_prices.get('Orb of Augmentation', 0.5):.1f}c = {aug_cost:.1f}c\n"
-            plan += f"• Glassblower's Baubles: {glassblow_count} × {current_prices.get('Glassblowers Bauble', 1.0):.1f}c = {glassblow_cost:.1f}c\n"
             
         else:
             total_chaos_cost = 100

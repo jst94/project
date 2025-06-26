@@ -87,13 +87,6 @@ class IntelligentCraftingAI:
                 'risk_level': 0.4,
                 'modifier_scaling': lambda x: max(0.25, 0.55 - (x * 0.08))
             },
-            'flask': {
-                'base_success': 0.75,
-                'cost_variance': 0.25,
-                'time_factor': 0.5,
-                'risk_level': 0.15,
-                'modifier_scaling': lambda x: max(0.6, 0.75 - (x * 0.1))  # Flask crafting is easier
-            }
         }
         
         # Learning data storage
@@ -185,8 +178,7 @@ class IntelligentCraftingAI:
             'chaos_spam': 50,
             'alt_regal': 25,
             'essence': 75,
-            'fossil': 60,
-            'flask': 15  # Flask crafting is much cheaper
+            'fossil': 60
         }
         
         modifier_cost_multiplier = 1 + (len(scenario.target_modifiers) * 0.2)
@@ -389,16 +381,6 @@ class IntelligentCraftingAI:
                 'CHECK results and repeat until you get target modifiers',
                 'Use Divine Orbs to perfect values once you have good base'
             ],
-            'flask': [
-                f'BUY {max(50, int(budget * 0.4))} Alteration Orbs and {max(5, int(budget * 0.1))} Augmentation Orbs',
-                f'BUY 5 Glassblower\'s Baubles for quality',
-                f'ACQUIRE WHITE (normal) {scenario.item_base} flask',
-                'RIGHT-CLICK Glassblower\'s Bauble → LEFT-CLICK flask (repeat until 20% quality)',
-                'RIGHT-CLICK Orb of Transmutation → LEFT-CLICK flask (makes it BLUE/magic)',
-                f'SPAM Alteration Orbs until you get ONE of: {", ".join(scenario.target_modifiers[:2])}',
-                'IF flask has only 1 mod: RIGHT-CLICK Augmentation Orb → LEFT-CLICK flask',
-                'REPEAT until you get both desired flask modifiers'
-            ]
         }
         
         return actions.get(method, ['Execute crafting method', 'Monitor progress', 'Adjust as needed'])

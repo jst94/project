@@ -9,6 +9,19 @@
 - Added logging import to league_config.py for better error handling
 - Code quality improvements and modernization
 
+### Features
+- **Separated Flask Crafting Module**: Flask crafting is now a dedicated module with:
+  - Specialized UI optimized for flask crafting workflow
+  - Complete flask modifier database with all prefixes/suffixes
+  - Flask type detection (Life, Mana, Utility, Unique, etc.)
+  - Advanced simulation engine for testing strategies
+  - OCR support for flask detection from screenshots
+  - Strategy comparison and optimization tools
+- **Main Interface Updates**: 
+  - Removed flask crafting from gear/armour methods
+  - Added "⚗️ Flask Crafting" button to launch specialized tool
+  - Cleaner separation between equipment and flask crafting
+
 ### Technical Improvements
 - Improved exception handling throughout the codebase
 - Better error logging instead of print statements
