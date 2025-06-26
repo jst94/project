@@ -264,17 +264,21 @@ class IntelligentCraftingAI:
         
         primary_strategy = strategies[0]
         
-        # Phase 1: Preparation
+        # Phase 1: Preparation  
+        prep_budget = budget_allocation['primary_method']['allocated_budget']
         plan_steps.append({
             'phase': 'preparation',
             'description': f'Prepare for {primary_strategy.method} crafting',
             'actions': [
-                'Acquire base item with appropriate item level',
-                'Purchase required currency based on budget allocation',
-                'Set up item filters and market monitoring'
+                f'OPEN PATH OF EXILE and navigate to your stash',
+                f'GO TO TRADE WEBSITE and search for {scenario.item_base} with ilvl {scenario.item_level}+',
+                f'BUY base item for approximately {int(prep_budget * 0.05)}c',
+                f'PURCHASE all required currency (budget: {int(prep_budget)}c total)',
+                'SET UP loot filter to highlight items with your target modifiers',
+                'CLEAR inventory space for crafting materials and results'
             ],
             'estimated_time': '5-10 minutes',
-            'budget_required': budget_allocation['primary_method']['allocated_budget'] * 0.1
+            'budget_required': prep_budget * 0.1
         })
         
         # Phase 2: Primary execution
@@ -338,35 +342,44 @@ class IntelligentCraftingAI:
     
     def _generate_method_actions(self, method: str, scenario: CraftingScenario) -> List[str]:
         """Generate specific actions for a crafting method"""
+        # Calculate specific quantities based on budget
+        budget = scenario.budget
+        chaos_needed = max(50, int(budget * 0.8))
+        divine_needed = max(3, int(budget * 0.05))
+        
         actions = {
             'chaos_spam': [
-                'Start with a rare base item or use Orb of Alchemy',
-                'Use Chaos Orbs repeatedly until desired modifiers appear',
-                'Monitor market prices for currency efficiency',
-                'Use Orb of Annulment to remove unwanted modifiers',
-                'Track attempts and adjust strategy if needed'
+                f'BUY exactly {chaos_needed} Chaos Orbs and {divine_needed} Divine Orbs from trade',
+                f'ACQUIRE {scenario.item_base} base with item level {scenario.item_level}+ (must be RARE/yellow)',
+                'RIGHT-CLICK Chaos Orb → LEFT-CLICK your item → CHECK modifiers',
+                f'REPEAT previous step until you see: {", ".join(scenario.target_modifiers[:3])}',
+                f'STOP when you get target mods OR used {int(chaos_needed * 0.9)} Chaos Orbs',
+                'Use Divine Orbs to perfect numeric values of good modifiers'
             ],
             'alt_regal': [
-                'Start with white base item',
-                'Use Orb of Transmutation to make magic',
-                'Use Alteration Orbs for desired prefix/suffix',
-                'Use Augmentation Orb if only one modifier',
-                'Use Regal Orb to upgrade to rare',
-                'Continue with Exalted Orbs for additional modifiers'
+                f'BUY {max(100, int(budget * 0.4))} Alteration Orbs, {max(20, int(budget * 0.1))} Augmentation Orbs, 5 Regal Orbs',
+                f'ACQUIRE WHITE (normal) {scenario.item_base} with item level {scenario.item_level}+',
+                'RIGHT-CLICK Orb of Transmutation → LEFT-CLICK item (makes it BLUE/magic)',
+                f'SPAM Alteration Orbs until you get ONE of: {", ".join(scenario.target_modifiers[:2])}',
+                'IF item has only 1 mod: RIGHT-CLICK Augmentation Orb → LEFT-CLICK item',
+                'RIGHT-CLICK Regal Orb → LEFT-CLICK item (makes it YELLOW/rare)',
+                'Use Exalted Orbs to add remaining target modifiers one by one'
             ],
             'essence': [
-                'Identify required essences for guaranteed modifiers',
-                'Start with white base item',
-                'Use appropriate essence to guarantee key modifier',
-                'Evaluate remaining modifiers',
-                'Use additional currency as needed for completion'
+                'IDENTIFY which essence guarantees your most important modifier',
+                f'BUY 10-20 of that essence type (budget: {int(budget * 0.6)}c)',
+                f'ACQUIRE WHITE {scenario.item_base} with item level {scenario.item_level}+',
+                'RIGHT-CLICK essence → LEFT-CLICK item (makes it RARE with guaranteed mod)',
+                'CHECK if you got additional target modifiers from the essence',
+                'Use Chaos Orbs or Exalted Orbs to complete remaining modifiers'
             ],
             'fossil': [
-                'Select fossils that bias toward target modifiers',
-                'Acquire appropriate resonators',
-                'Apply fossil combination to base item',
-                'Repeat until satisfactory result',
-                'Consider fossil combinations for better targeting'
+                'RESEARCH which fossils boost your target modifier types',
+                f'BUY appropriate fossils and resonators (budget: {int(budget * 0.7)}c)',
+                f'ACQUIRE {scenario.item_base} base with item level {scenario.item_level}+',
+                'PUT fossils in resonator → RIGHT-CLICK resonator → LEFT-CLICK item',
+                'CHECK results and repeat until you get target modifiers',
+                'Use Divine Orbs to perfect values once you have good base'
             ]
         }
         

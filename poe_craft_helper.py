@@ -734,12 +734,15 @@ class IntelligentPOECraftHelper:
         plan = "CHAOS SPAM METHOD:\n"
         plan += "-" * 30 + "\n\n"
         
-        plan += "STEP-BY-STEP PROCESS:\n"
-        plan += f"1. Obtain a rare base item with item level ≥ {analysis.get('min_ilvl', 85)}\n"
-        plan += "2. Ensure item has 6 affixes (3 prefix, 3 suffix)\n"
-        plan += "3. Use Chaos Orbs repeatedly until desired modifiers appear\n"
-        plan += "4. Use Divine Orbs to perfect numeric values\n"
-        plan += "5. Use Annulment Orbs to remove unwanted modifiers if needed\n\n"
+        plan += "EXACT STEPS TO FOLLOW:\n"
+        plan += f"1. 🛒 BUY: {int(budget * 0.8)} Chaos Orbs, 5-10 Divine Orbs, 2-3 Annulment Orbs\n"
+        plan += f"2. 🏪 ACQUIRE: {analysis.get('item_base', 'Base item')} with item level {analysis.get('min_ilvl', 85)}+\n"
+        plan += "3. ✅ CHECK: Item must be RARE (yellow) - if not, use Orb of Alchemy\n"
+        plan += "4. 🎲 CRAFT: Right-click Chaos Orb → Left-click your item\n"
+        plan += "5. 👀 INSPECT: Check if you got your target modifiers\n"
+        plan += "6. 🔄 REPEAT: Steps 4-5 until you get desired modifiers\n"
+        plan += "7. 💎 OPTIMIZE: Use Divine Orbs to perfect the numeric values\n"
+        plan += "8. 🗑️ CLEAN: Use Annulment Orbs to remove bad modifiers (RISKY!)\n\n"
         
         plan += "TARGET MODIFIERS:\n"
         for i, mod in enumerate(analysis['modifiers'], 1):
@@ -747,12 +750,12 @@ class IntelligentPOECraftHelper:
             plan += f"  {i}. {mod['name']} ({tier['name']}: {tier['value']})\n"
         plan += "\n"
         
-        plan += "TIPS:\n"
-        plan += f"• Have at least 200-500 Chaos Orbs ready (Budget: {budget:.0f}c)\n"
-        plan += "• Use item filters to highlight good bases\n"
-        plan += "• Consider using Awakener's Orb for influenced items\n"
-        plan += "• Be patient - this method is heavily RNG dependent\n"
-        plan += f"• Target {len(target_mods)} modifiers: {', '.join(target_mods[:3])}{'...' if len(target_mods) > 3 else ''}\n\n"
+        plan += "⚠️ IMPORTANT ACTIONS:\n"
+        plan += f"• STOP crafting when you see: {', '.join(target_mods)}\n"
+        plan += f"• BUDGET LIMIT: Stop at {int(budget * 0.9)} Chaos Orbs used\n"
+        plan += "• SAVE OFTEN: Create multiple copies of promising items\n"
+        plan += "• USE FILTER: Highlight items with your target mods\n"
+        plan += f"• EXPECTED ATTEMPTS: ~{max(50, int(budget / 10))} chaos orbs for success\n\n"
         
         return plan
         
@@ -762,13 +765,14 @@ class IntelligentPOECraftHelper:
         plan += "-" * 30 + "\n\n"
         plan += f"Budget: {budget:.0f}c | Target: {len(target_mods)} modifiers\n\n"
         
-        plan += "STEP-BY-STEP PROCESS:\n"
-        plan += "1. Start with a white (normal) base item\n"
-        plan += "2. Use Orb of Transmutation to make it magic\n"
-        plan += "3. Use Alteration Orbs to roll desired prefix/suffix\n"
-        plan += "4. Use Augmentation Orb if item has only 1 modifier\n"
-        plan += "5. Use Regal Orb to upgrade to rare\n"
-        plan += "6. Continue with Exalted Orbs for additional modifiers\n"
+        plan += "EXACT STEPS TO FOLLOW:\n"
+        plan += f"1. 🛒 BUY: {int(budget * 0.4)} Alteration Orbs, {int(budget * 0.1)} Augmentation Orbs, 5 Regal Orbs, 2-3 Exalted Orbs\n"
+        plan += f"2. 🏪 ACQUIRE: WHITE (normal) {analysis.get('item_base', 'base item')} with ilvl {analysis.get('min_ilvl', 85)}+\n"
+        plan += "3. ✅ USE: Right-click Orb of Transmutation → Left-click item (makes it BLUE/magic)\n"
+        plan += "4. 🎲 SPAM: Right-click Alteration Orb → Left-click item until you see ONE target mod\n"
+        plan += "5. 🔍 CHECK: If item has only 1 mod, use Augmentation Orb to add 2nd mod\n"
+        plan += "6. ⬆️ UPGRADE: Right-click Regal Orb → Left-click item (makes it YELLOW/rare)\n"
+        plan += "7. ✨ FINISH: Use Exalted Orbs to add remaining target modifiers\n"
         plan += "7. Use Divine Orbs to perfect values\n\n"
         
         plan += "TARGET MODIFIERS:\n"
@@ -781,7 +785,10 @@ class IntelligentPOECraftHelper:
         plan += "• Use Eternal Orb imprint before regaling if available\n"
         plan += "• Focus on highest weight modifiers first\n"
         plan += "• Consider using Beastcrafting for imprinting\n"
-        plan += "• More cost-effective for specific modifiers\n\n"
+        plan += "⚠️ COMPLETION CHECKLIST:\n"
+        plan += f"• ✅ Got target prefix mods: {', '.join([m for m in target_mods if 'life' in m.lower() or 'damage' in m.lower()][:2])}\n"
+        plan += f"• ✅ Got target suffix mods: {', '.join([m for m in target_mods if 'resist' in m.lower() or 'speed' in m.lower()][:2])}\n"
+        plan += f"• ✅ Budget remaining: Track your spending vs {budget}c limit\n\n"
         
         return plan
         
@@ -811,6 +818,10 @@ class IntelligentPOECraftHelper:
             
             # Step 2: Use essence on base
             plan += "STEP 2: APPLY PRIMARY ESSENCE 🎯\n"
+            plan += f"🛒 BUY: {essence_req['essence_priorities'][0]['essence']} (quantity: {max(10, int(budget/20))})\n"
+            plan += f"🏪 ACQUIRE: WHITE {analysis.get('item_base', 'base item')} with ilvl {analysis.get('min_ilvl', 85)}+\n"
+            plan += f"✅ ACTION: Right-click {essence_req['essence_priorities'][0]['essence']} → Left-click item\n"
+            plan += f"👀 RESULT: Item becomes RARE with guaranteed {essence_req['essence_priorities'][0]['modifier']}\n\n"
             primary_essence = essence_req['essence_priorities'][0]['essence']
             primary_mod = essence_req['essence_priorities'][0]['modifier']
             plan += f"1. Obtain base item (normal rarity)\n"
@@ -1364,9 +1375,17 @@ class IntelligentPOECraftHelper:
                 
                 actions = step.get('actions', [])
                 if actions:
-                    plan += f"Actions:\n"
-                    for action in actions:
-                        plan += f"  • {action}\n"
+                    plan += f"🎯 EXACT ACTIONS TO TAKE:\n"
+                    for j, action in enumerate(actions, 1):
+                        # Make actions more specific and actionable
+                        if 'purchase' in action.lower() or 'acquire' in action.lower():
+                            plan += f"  {j}. 🛒 {action.upper()}\n"
+                        elif 'use' in action.lower() or 'apply' in action.lower():
+                            plan += f"  {j}. ⚡ {action.upper()}\n"
+                        elif 'monitor' in action.lower() or 'check' in action.lower():
+                            plan += f"  {j}. 👁️ {action.upper()}\n"
+                        else:
+                            plan += f"  {j}. ✅ {action.upper()}\n"
                 
                 if 'success_probability' in step:
                     plan += f"Success Rate: {step['success_probability']*100:.1f}%\n"
@@ -1387,6 +1406,18 @@ class IntelligentPOECraftHelper:
                 for mitigation in mitigations:
                     plan += f"  • {mitigation}\n"
             plan += "\n"
+        
+        # Add final action summary
+        plan += "🎯 FINAL ACTION SUMMARY:\n"
+        plan += "-" * 30 + "\n"
+        primary_method = ai_plan.get('budget_allocation', {}).get('primary_method', {})
+        if primary_method:
+            method_name = primary_method.get('method', 'chaos_spam').upper()
+            budget = primary_method.get('allocated_budget', 0)
+            plan += f"1. 🛒 GO TO MARKET: Buy currency for {method_name} method\n"
+            plan += f"2. 💰 SPEND UP TO: {budget:.0f} Chaos Orbs\n"
+            plan += f"3. 🎲 USE METHOD: {method_name} until target mods appear\n"
+            plan += f"4. ⚠️ STOP WHEN: You see your target modifiers OR budget depleted\n\n"
         
         plan += f"🤖 AI Analysis completed at: {ai_plan.get('generated_at', 'Unknown')}\n"
         plan += f"AI Version: {ai_plan.get('ai_version', '1.0.0')}\n"
