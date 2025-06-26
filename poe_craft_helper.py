@@ -734,7 +734,7 @@ class IntelligentPOECraftHelper:
         plan += "-" * 30 + "\n\n"
         
         plan += "STEP-BY-STEP PROCESS:\n"
-        plan += "1. Obtain a rare base item with item level ≥ {analysis['min_ilvl']}\n"
+        plan += f"1. Obtain a rare base item with item level ≥ {analysis.get('min_ilvl', 85)}\n"
         plan += "2. Ensure item has 6 affixes (3 prefix, 3 suffix)\n"
         plan += "3. Use Chaos Orbs repeatedly until desired modifiers appear\n"
         plan += "4. Use Divine Orbs to perfect numeric values\n"
@@ -747,10 +747,11 @@ class IntelligentPOECraftHelper:
         plan += "\n"
         
         plan += "TIPS:\n"
-        plan += "• Have at least 200-500 Chaos Orbs ready\n"
+        plan += f"• Have at least 200-500 Chaos Orbs ready (Budget: {budget:.0f}c)\n"
         plan += "• Use item filters to highlight good bases\n"
         plan += "• Consider using Awakener's Orb for influenced items\n"
-        plan += "• Be patient - this method is heavily RNG dependent\n\n"
+        plan += "• Be patient - this method is heavily RNG dependent\n"
+        plan += f"• Target {len(target_mods)} modifiers: {', '.join(target_mods[:3])}{'...' if len(target_mods) > 3 else ''}\n\n"
         
         return plan
         
@@ -758,6 +759,7 @@ class IntelligentPOECraftHelper:
         """Generate alt+regal crafting plan"""
         plan = "ALTERATION + REGAL METHOD:\n"
         plan += "-" * 30 + "\n\n"
+        plan += f"Budget: {budget:.0f}c | Target: {len(target_mods)} modifiers\n\n"
         
         plan += "STEP-BY-STEP PROCESS:\n"
         plan += "1. Start with a white (normal) base item\n"
@@ -786,6 +788,7 @@ class IntelligentPOECraftHelper:
         """Generate detailed essence crafting plan with automatic essence detection"""
         plan = "ESSENCE CRAFTING METHOD:\n"
         plan += "-" * 30 + "\n\n"
+        plan += f"Budget: {budget:.0f}c | Complexity: {analysis.get('total_weight', 0)}\n\n"
         
         # Auto-detect required essences
         essence_req = self.detect_required_essences(target_mods)
@@ -876,6 +879,7 @@ class IntelligentPOECraftHelper:
         """Generate fossil crafting plan"""
         plan = "FOSSIL CRAFTING METHOD:\n"
         plan += "-" * 30 + "\n\n"
+        plan += f"Budget: {budget:.0f}c | Modifiers: {len(target_mods)}\n\n"
         
         plan += "STEP-BY-STEP PROCESS:\n"
         plan += "1. Obtain relevant fossils for your modifiers\n"
@@ -903,6 +907,7 @@ class IntelligentPOECraftHelper:
         """Generate mastercraft plan"""
         plan = "MASTERCRAFT METHOD:\n"
         plan += "-" * 30 + "\n\n"
+        plan += f"Budget: {budget:.0f}c | Target mods: {len(target_mods)}\n\n"
         
         plan += "STEP-BY-STEP PROCESS:\n"
         plan += "1. Craft base item using other methods first\n"
@@ -1006,18 +1011,19 @@ class IntelligentPOECraftHelper:
         plan = "SUCCESS PROBABILITY:\n"
         plan += "-" * 20 + "\n"
         
-        total_weight = analysis['total_weight']
-        mod_count = len(analysis['modifiers'])
+        total_weight = analysis.get('total_weight', 0)
+        mod_count = len(analysis.get('modifiers', []))
         
         if method == "chaos_spam":
             # Rough probability calculation
             base_prob = 1.0
-            for mod in analysis['modifiers']:
-                prob = mod['weight'] / 10000  # Rough estimate
+            for mod in analysis.get('modifiers', []):
+                prob = mod.get('weight', 1000) / 10000  # Rough estimate
                 base_prob *= prob
             success_rate = base_prob * 100
             plan += f"• Getting all {mod_count} modifiers: {success_rate:.4f}%\n"
-            plan += f"• Expected attempts: {1/success_rate*100:.0f} chaos orbs\n"
+            plan += f"• Total modifier weight: {total_weight}\n"
+            plan += f"• Expected attempts: {1/max(success_rate/100, 0.0001):.0f} chaos orbs\n"
             
         elif method == "alt_regal":
             success_rate = 50.0  # Rough estimate for alt+regal
@@ -1040,6 +1046,12 @@ class IntelligentPOECraftHelper:
         """Suggest alternative modifiers"""
         plan = "ALTERNATIVE SUGGESTIONS:\n"
         plan += "-" * 25 + "\n"
+        
+        if analysis.get('warnings'):
+            plan += "⚠️ DETECTED ISSUES:\n"
+            for warning in analysis['warnings'][:3]:
+                plan += f"• {warning}\n"
+            plan += "\n"
         
         for mod_name in target_mods:
             if mod_name in self.modifier_database:
