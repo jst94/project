@@ -27,26 +27,15 @@ class POEMarketAPI:
         self.cache_duration = 600   # 10 minutes
         
         # Default fallback prices (in chaos orbs)
-        self.fallback_prices = {
-            'Chaos Orb': 1.0,
-            'Exalted Orb': 200.0,
-            'Divine Orb': 15.0,
-            'Orb of Annulment': 8.0,
-            'Orb of Scouring': 0.5,
-            'Orb of Alteration': 0.1,
-            'Orb of Augmentation': 0.05,
-            'Regal Orb': 2.0,
+        self.fallback_prices = DEFAULT_PRICES.copy()
+        self.fallback_prices.update({
             'Orb of Alchemy': 0.5,
-            'Orb of Transmutation': 0.02,
             'Blessed Orb': 0.5,
             'Chromatic Orb': 0.1,
             'Orb of Jewellers': 0.1,
             'Orb of Fusing': 0.1,
-            'Eternal Orb': 500.0,
-            'Essence': 5.0,
-            'Fossil': 3.0,
-            'Resonator': 2.0
-        }
+            'Eternal Orb': 500.0
+        })
         
         # Start background price updater
         self.start_background_updater()
