@@ -1297,6 +1297,9 @@ class IntelligentPOECraftHelper:
     
     def get_user_ai_preferences(self) -> Dict:
         """Get user preferences for AI optimization"""
+        # Get user preferences object if available
+        user_prefs = getattr(self, 'user_preferences', None)
+        
         return {
             'method_preferences': {
                 'chaos_spam': 0.6,
@@ -1304,9 +1307,11 @@ class IntelligentPOECraftHelper:
                 'essence': 0.8,
                 'fossil': 0.5
             },
-            'risk_tolerance': getattr(self, 'user_preferences', {}).get('risk_tolerance', 0.5),
+            'risk_tolerance': 0.5,  # Default risk tolerance
             'time_preference': 0.7,  # Prefers faster methods
-            'cost_sensitivity': 0.8   # Cost-conscious
+            'cost_sensitivity': 0.8,   # Cost-conscious
+            'preferred_method': getattr(user_prefs, 'preferred_method', 'chaos_spam') if user_prefs else 'chaos_spam',
+            'default_budget': getattr(user_prefs, 'default_budget', 1000.0) if user_prefs else 1000.0
         }
     
     def format_ai_plan(self, ai_plan: Dict) -> str:
