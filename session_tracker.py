@@ -299,7 +299,7 @@ class SessionTracker:
             auto_refresh_prices=True,
             price_update_interval=300,
             show_budget_optimization=True,
-            league_name="Necropolis",
+            league_name="Secrets of the Atlas",
             ui_theme="dark",
             auto_detect_items=False
         )

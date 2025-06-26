@@ -19,11 +19,12 @@ from enhanced_modifier_database import enhanced_modifier_db
 from intelligent_recommendations import intelligent_recommendations
 from adaptive_learning_system import learning_system
 from realtime_strategy_optimizer import realtime_optimizer
+from league_config import get_current_league_name
 
 class IntelligentPOECraftHelper:
     def __init__(self):
         self.root = tk.Tk()
-        self.root.title("Intelligent PoE Craft Helper - League 3.26")
+        self.root.title(f"Intelligent PoE Craft Helper - {get_current_league_name()}")
         self.root.geometry("800x700")
         self.root.attributes('-topmost', True)
         self.root.attributes('-alpha', 0.95)
@@ -475,7 +476,7 @@ class IntelligentPOECraftHelper:
             item_base=base_item,
             item_level=ilvl,
             budget=budget,
-            league_meta={'current_league': 'Necropolis'},
+            league_meta={'current_league': get_current_league_name()},
             user_preferences=self.get_user_ai_preferences()
         )
         

@@ -2,6 +2,7 @@
 
 import os
 import sys
+from league_config import get_current_league_name
 
 class POECraftHelperCLI:
     def __init__(self):
@@ -32,7 +33,7 @@ class POECraftHelperCLI:
     
     def print_header(self):
         print("=" * 50)
-        print("    PATH OF EXILE CRAFT HELPER - LEAGUE 3.26")
+        print(f"    PATH OF EXILE CRAFT HELPER - {get_current_league_name().upper()}")
         print("=" * 50)
         print()
     

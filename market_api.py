@@ -10,13 +10,14 @@ import threading
 from typing import Dict, Optional, List
 from datetime import datetime, timedelta
 import logging
+from league_config import get_current_league_api_name
 
 
 class POEMarketAPI:
     """Real-time Path of Exile market data integration"""
     
-    def __init__(self, league: str = "Necropolis"):
-        self.league = league
+    def __init__(self, league: Optional[str] = None):
+        self.league = league or get_current_league_api_name()
         self.base_url = "https://poe.ninja/api/data"
         self.currency_data = {}
         self.essence_data = {}

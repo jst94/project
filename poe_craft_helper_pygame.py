@@ -2,6 +2,7 @@ import pygame
 import sys
 import json
 import os
+from league_config import get_current_league_name
 
 class POECraftHelper:
     def __init__(self):
@@ -19,7 +20,7 @@ class POECraftHelper:
         self.width = 450
         self.height = 700
         self.screen = pygame.display.set_mode((self.width, self.height))
-        pygame.display.set_caption("PoE Craft Helper - League 3.26")
+        pygame.display.set_caption(f"PoE Craft Helper - {get_current_league_name()}")
         
         # Fonts
         self.font_title = pygame.font.Font(None, 24)
@@ -159,7 +160,7 @@ class POECraftHelper:
         self.screen.fill(self.BLACK)
         
         # Title
-        title = self.font_title.render("PoE Craft Helper - League 3.26", True, self.GOLD)
+        title = self.font_title.render(f"PoE Craft Helper - {get_current_league_name()}", True, self.GOLD)
         self.screen.blit(title, (50, 10))
         
         # Base item input

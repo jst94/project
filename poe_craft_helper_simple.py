@@ -7,14 +7,15 @@ import threading
 import time
 from typing import List, Dict, Tuple, Optional
 from datetime import datetime
-from market_api import poe_market, price_optimizer
+from market_api import poe_market
+from league_config import get_current_league_name, price_optimizer
 from session_tracker import session_tracker
 from performance_optimizer import initialize_performance_optimizer, optimize_tkinter_performance
 
 class SimplePOECraftHelper:
     def __init__(self):
         self.root = tk.Tk()
-        self.root.title("Simple PoE Craft Helper - League 3.26")
+        self.root.title(f"Simple PoE Craft Helper - {get_current_league_name()}")
         self.root.geometry("800x700")
         self.root.attributes('-topmost', True)
         self.root.attributes('-alpha', 0.95)
