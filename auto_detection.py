@@ -58,7 +58,11 @@ class ScreenCapture:
     """Handles screen capture for item detection"""
     
     def __init__(self):
-        self.mss = mss.mss() if MSS_AVAILABLE else None
+        try:
+            self.mss = mss.mss() if MSS_AVAILABLE else None
+        except Exception as e:
+            logger.warning(f"Failed to initialize MSS: {e}")
+            self.mss = None
         
     def capture_screen_region(self, x: int, y: int, width: int, height: int) -> np.ndarray:
         """Capture a specific region of the screen"""

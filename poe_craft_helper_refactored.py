@@ -5,6 +5,7 @@ import os
 import random
 import threading
 import time
+import logging
 from typing import List, Dict, Tuple, Optional
 from datetime import datetime
 from market_api import poe_market, price_optimizer
@@ -21,6 +22,9 @@ from adaptive_learning_system import learning_system
 from realtime_strategy_optimizer import realtime_optimizer
 from league_config import get_current_league_name
 from config import UI_CONFIG, CRAFTING_CONFIG, APP_CONFIG
+
+# Configure logging
+logger = logging.getLogger(__name__)
 
 
 class RefactoredPOECraftHelper:
@@ -622,8 +626,28 @@ class RefactoredPOECraftHelper:
         messagebox.showinfo("Multi-Monitor", "Multi-monitor support setup!")
     
     def enable_auto_detection(self):
-        """Enable auto-detection"""
-        messagebox.showinfo("Auto-Detection", "Auto-detection enabled!")
+        """Enable auto-detection functionality"""
+        try:
+            # Try the simplified version first
+            try:
+                from auto_detection_simple import setup_auto_detection
+                self.auto_detection_ui = setup_auto_detection(self)
+                if self.auto_detection_ui:
+                    return
+            except Exception as e:
+                logger.warning(f"Simplified auto-detection failed: {e}")
+            
+            # Fallback to original version
+            from auto_detection import setup_auto_detection
+            self.auto_detection_ui = setup_auto_detection(self)
+            
+        except Exception as e:
+            # Show setup guide if both fail
+            messagebox.showerror("Auto-Detection Setup Required", 
+                               f"Auto-detection requires additional libraries.\n\n"
+                               f"Error: {e}\n\n"
+                               "Please run: python fix_auto_detection.py\n"
+                               "Or install manually: pip install keyboard mss")
     
     def show_manual_item_guide(self):
         """Show manual input guide"""
