@@ -25,8 +25,12 @@ if %errorlevel% neq 0 (
 
 echo [0/7] Checking for Tesseract OCR...
 echo ------------------------------------
-where tesseract >nul 2>&1
-if %errorlevel% neq 0 (
+
+REM First try to find tesseract in PATH
+set "TESSERACT_FOUND=0"
+where tesseract >nul 2>&1 && set "TESSERACT_FOUND=1"
+
+if "!TESSERACT_FOUND!"=="0" (
     echo Tesseract not found in PATH. Checking common locations...
     
     REM Check common Tesseract installation paths
@@ -77,7 +81,7 @@ if %errorlevel% neq 0 (
     )
 ) else (
     echo Tesseract found in PATH!
-    tesseract --version | findstr /i "tesseract"
+    tesseract --version 2>&1 | findstr /i "tesseract"
 )
 
 echo.
