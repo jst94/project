@@ -15,7 +15,65 @@ if %errorlevel% neq 0 (
     exit /b 1
 )
 
-echo [0/6] Running pre-build checks...
+echo [0/7] Checking for Tesseract OCR...
+echo ------------------------------------
+where tesseract >nul 2>&1
+if %errorlevel% neq 0 (
+    echo Tesseract not found in PATH. Checking common locations...
+    
+    REM Check common Tesseract installation paths
+    set "TESSERACT_PATH="
+    if exist "C:\Program Files\Tesseract-OCR\tesseract.exe" (
+        set "TESSERACT_PATH=C:\Program Files\Tesseract-OCR"
+    ) else if exist "C:\Program Files (x86)\Tesseract-OCR\tesseract.exe" (
+        set "TESSERACT_PATH=C:\Program Files (x86)\Tesseract-OCR"
+    ) else if exist "%LOCALAPPDATA%\Tesseract-OCR\tesseract.exe" (
+        set "TESSERACT_PATH=%LOCALAPPDATA%\Tesseract-OCR"
+    ) else if exist "%PROGRAMFILES%\Tesseract-OCR\tesseract.exe" (
+        set "TESSERACT_PATH=%PROGRAMFILES%\Tesseract-OCR"
+    )
+    
+    if defined TESSERACT_PATH (
+        echo Found Tesseract at: !TESSERACT_PATH!
+        echo Adding to PATH for this session...
+        set "PATH=!TESSERACT_PATH!;!PATH!"
+        
+        REM Verify it works
+        "!TESSERACT_PATH!\tesseract.exe" --version >nul 2>&1
+        if !errorlevel! equ 0 (
+            echo Tesseract successfully added to PATH!
+            
+            REM Set the environment variable for pytesseract
+            set "TESSERACT_CMD=!TESSERACT_PATH!\tesseract.exe"
+        ) else (
+            echo ERROR: Failed to run Tesseract from !TESSERACT_PATH!
+            echo Please install Tesseract OCR from:
+            echo https://github.com/UB-Mannheim/tesseract/wiki
+            pause
+            exit /b 1
+        )
+    ) else (
+        echo ERROR: Tesseract OCR is not installed!
+        echo.
+        echo Please install Tesseract OCR from:
+        echo https://github.com/UB-Mannheim/tesseract/wiki
+        echo.
+        echo After installation, either:
+        echo 1. Add Tesseract to your system PATH, or
+        echo 2. Install it in one of these locations:
+        echo    - C:\Program Files\Tesseract-OCR
+        echo    - C:\Program Files (x86)\Tesseract-OCR
+        echo    - %LOCALAPPDATA%\Tesseract-OCR
+        pause
+        exit /b 1
+    )
+) else (
+    echo Tesseract found in PATH!
+    tesseract --version | findstr /i "tesseract"
+)
+
+echo.
+echo [1/7] Running pre-build checks...
 echo ---------------------------------
 python pre_build_check.py
 if %errorlevel% neq 0 (
@@ -27,12 +85,12 @@ if %errorlevel% neq 0 (
 )
 echo Pre-build checks passed!
 
-echo [1/6] Installing dependencies...
+echo [2/7] Installing dependencies...
 echo --------------------------------
 pip install pyinstaller opencv-python pytesseract Pillow numpy requests psutil --quiet --break-system-packages
 
 echo.
-echo [2/6] Creating data directory...
+echo [3/7] Creating data directory...
 echo --------------------------------
 if not exist "data" mkdir "data"
 echo Created data directory
@@ -52,7 +110,7 @@ if not exist "data\user_preferences.json" (
 )
 
 echo.
-echo [3/6] Cleaning previous builds...
+echo [4/7] Cleaning previous builds...
 echo --------------------------------
 if exist "build" rmdir /s /q "build"
 if exist "dist" rmdir /s /q "dist"
@@ -60,7 +118,7 @@ if exist "__pycache__" rmdir /s /q "__pycache__"
 echo Cleaned build directories
 
 echo.
-echo [4/6] Building executable with launcher...
+echo [5/7] Building executable with launcher...
 echo -----------------------------------------
 echo This will include:
 echo - Launcher (for choosing versions)
@@ -159,7 +217,7 @@ if %errorlevel% neq 0 (
 )
 
 echo.
-echo [5/6] Creating portable package...
+echo [6/7] Creating portable package...
 echo ---------------------------------
 if exist "PoE_Craft_Helper_Portable" rmdir /s /q "PoE_Craft_Helper_Portable"
 mkdir "PoE_Craft_Helper_Portable"
@@ -190,7 +248,7 @@ echo timeout /t 2 /nobreak ^>nul >> "PoE_Craft_Helper_Portable\Launch_PoE_Craft_
 echo exit >> "PoE_Craft_Helper_Portable\Launch_PoE_Craft_Helper.bat"
 
 echo.
-echo [6/6] Cleaning up...
+echo [7/7] Cleaning up...
 echo -------------------
 del "build_spec.spec" >nul 2>&1
 echo Cleaned temporary files
