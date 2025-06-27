@@ -208,7 +208,7 @@ if __name__ == "__main__":
         print("Exiting...")
 '''
     
-    with open('test_auto_detection.py', 'w') as f:
+    with open('test_auto_detection.py', 'w', encoding='utf-8') as f:
         f.write(test_script)
     
     print("✓ Created test_auto_detection.py")

@@ -1,4 +1,5 @@
 @echo off
+setlocal enabledelayedexpansion
 title PoE Craft Helper - Complete Build System
 echo =========================================
 echo    PoE Craft Helper - Complete Build
@@ -223,3 +224,16 @@ echo 2. Users can extract and run anywhere
 echo 3. No Python or dependencies needed!
 echo.
 pause
+exit /b 0
+
+:error
+echo.
+echo =========================================
+echo         ERROR OCCURRED!
+echo =========================================
+echo.
+echo The build process encountered an error.
+echo Please check the messages above for details.
+echo.
+pause
+exit /b 1
