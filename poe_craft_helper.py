@@ -390,7 +390,7 @@ class IntelligentPOECraftHelper:
                  bg='#f44336', fg='white').pack(side='left', padx=2)
         tk.Button(left_controls, text="Refresh Prices", command=self.refresh_prices,
                  bg='#2196F3', fg='white').pack(side='left', padx=2)
-        tk.Button(left_controls, text="Detect Item", command=self.open_item_detection,
+        tk.Button(left_controls, text="📝 Manual Input Guide", command=self.open_item_detection,
                  bg='#9C27B0', fg='white').pack(side='left', padx=2)
         tk.Button(left_controls, text="⚗️ Flask Crafting", command=self.open_flask_crafting,
                  bg='#00ff88', fg='black').pack(side='left', padx=2)
@@ -1214,11 +1214,150 @@ class IntelligentPOECraftHelper:
             messagebox.showerror("Error", f"Failed to setup multi-monitor: {e}")
     
     def open_item_detection(self):
-        """Open item detection window"""
+        """Open item detection window with manual fallback"""
         try:
-            self.item_detection.open_detection_window()
+            # Show auto-detection unavailable message
+            response = messagebox.askyesno(
+                "Item Detection", 
+                "Auto-detection not available yet. Please use manual capture methods.\n\n"
+                "Would you like to see the manual input guide for gear/armour?"
+            )
+            
+            if response:
+                self.show_manual_item_guide()
+            else:
+                # Show brief instruction
+                messagebox.showinfo("Manual Input", 
+                    "For manual item input:\n"
+                    "1. Enter item base in the 'Item Base' field\n"
+                    "2. List target modifiers in the text area\n"
+                    "3. Set budget and item level\n"
+                    "4. Generate crafting plan")
+                
         except Exception as e:
             messagebox.showerror("Error", f"Failed to open item detection: {e}")
+            
+    def show_manual_item_guide(self):
+        """Show manual item input guide for gear/armour"""
+        guide_window = tk.Toplevel(self.root)
+        guide_window.title("Manual Item Input Guide")
+        guide_window.geometry("700x600")
+        guide_window.transient(self.root)
+        
+        # Create scrollable text
+        text_widget = tk.Text(guide_window, wrap='word', font=("Arial", 10))
+        scrollbar = tk.Scrollbar(guide_window, orient="vertical", command=text_widget.yview)
+        text_widget.configure(yscrollcommand=scrollbar.set)
+        
+        guide_text = """🔍 MANUAL ITEM INPUT GUIDE (Gear/Armour)
+
+Auto-detection is not available yet, but you can easily input item data manually:
+
+📋 MANUAL INPUT STEPS:
+
+1. ITEM BASE:
+   • Enter exact item name in "Item Base" field
+   • Examples: "Titanium Spirit Shield", "Hubris Circlet", "Steel Ring"
+   • Include item type but not quality/sockets/links
+
+2. TARGET MODIFIERS:
+   • List desired modifiers in the text area (one per line)
+   • Use PoE modifier names or descriptions
+   • Examples:
+     - "+1 to Level of Socketed Gems"
+     - "70+ Life" or "70-79 to maximum Life"
+     - "35+ Fire Resistance"
+     - "Adds # to # Physical Damage to Attacks"
+
+3. ITEM LEVEL:
+   • Set appropriate item level (affects modifier tiers)
+   • Higher ilvl = access to higher tier modifiers
+   • Check poedb.tw for modifier requirements
+
+4. BUDGET:
+   • Set realistic budget in chaos orbs
+   • More modifiers = higher cost
+   • Consider method costs (chaos spam > essence > alt+regal)
+
+💡 ITEM IDENTIFICATION TIPS:
+
+WEAPON TYPES:
+• One Hand: Claw, Dagger, Wand, Sword, Axe, Mace, Sceptre
+• Two Hand: Bow, Staff, Sword, Axe, Mace
+• Examples: "Jewelled Foil", "Imperial Bow", "Prophecy Wand"
+
+ARMOUR TYPES:
+• Helmet: Leather Cap, Tricorne, Hubris Circlet, etc.
+• Body Armour: Simple Robe, Astral Plate, Vaal Regalia, etc.
+• Gloves: Iron Gauntlets, Sorcerer Gloves, etc.
+• Boots: Iron Greaves, Sorcerer Boots, etc.
+• Shield: Buckler, Tower Shield, Spirit Shield, etc.
+
+JEWELRY:
+• Rings: Iron Ring, Gold Ring, Steel Ring, etc.
+• Amulets: Coral Amulet, Paua Amulet, etc.
+• Belts: Leather Belt, Heavy Belt, Stygian Vise, etc.
+
+🔧 MODIFIER CATEGORIES:
+
+WEAPON MODIFIERS:
+• Damage: "Adds # to # Physical/Fire/Cold/Lightning Damage"
+• Crit: "% increased Critical Strike Chance/Multiplier"
+• Attack Speed: "% increased Attack Speed"
+• Gems: "+1/+2 to Level of Socketed Gems"
+
+ARMOUR MODIFIERS:
+• Life: "# to maximum Life" (35-89 on most pieces)
+• Energy Shield: "# to maximum Energy Shield"
+• Resistances: "% to Fire/Cold/Lightning Resistance" (max 48%)
+• Movement: "% increased Movement Speed" (boots only)
+
+JEWELRY MODIFIERS:
+• Life: "# to maximum Life" (60-89 on rings/amulets)
+• Damage: "Adds # to # Damage to Attacks/Spells"
+• Resistances: "% to Elemental Resistances"
+• Attributes: "+# to Strength/Dexterity/Intelligence"
+
+⚡ QUICK START EXAMPLES:
+
+LIFE/ES HELMET:
+• Base: "Hubris Circlet"
+• Modifiers: "70+ Life", "100+ Energy Shield", "30+ Fire Resistance"
+• Budget: 500-1000c
+
+WEAPON:
+• Base: "Jewelled Foil"
+• Modifiers: "300+ Physical DPS", "7+ Critical Strike Chance", "15+ Attack Speed"
+• Budget: 1000-5000c
+
+RING:
+• Base: "Steel Ring"
+• Modifiers: "70+ Life", "35+ Fire Resistance", "35+ Cold Resistance"
+• Budget: 200-500c
+
+🎲 CRAFTING METHOD SELECTION:
+• Chaos Spam: Many modifiers, high budget, RNG heavy
+• Alt+Regal: 1-2 specific modifiers, medium budget
+• Essence: Guaranteed specific modifier, medium cost
+• Fossil: Biased towards certain modifier types
+• Mastercraft: Guaranteed bench modifiers only
+
+🎯 TIPS:
+• Check poedb.tw for exact modifier names and tiers
+• Consider using trade site to see current prices
+• Start with fewer modifiers to learn the system
+• Flask crafting has its own dedicated module!"""
+
+        text_widget.insert("1.0", guide_text)
+        text_widget.config(state='disabled')
+        
+        text_widget.pack(side="left", fill="both", expand=True, padx=10, pady=10)
+        scrollbar.pack(side="right", fill="y", pady=10)
+        
+        # Close button
+        close_btn = tk.Button(guide_window, text="Close", command=guide_window.destroy,
+                             bg='#2196F3', fg='white', font=("Arial", 10))
+        close_btn.pack(pady=10)
     
     def load_user_preferences(self):
         """Load and apply user preferences"""

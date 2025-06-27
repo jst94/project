@@ -21,6 +21,11 @@
   - Removed flask crafting from gear/armour methods
   - Added "⚗️ Flask Crafting" button to launch specialized tool
   - Cleaner separation between equipment and flask crafting
+- **Manual Detection Integration**:
+  - Auto-detection unavailable message with manual fallback options
+  - Comprehensive manual input dialogs for both gear and flasks
+  - Detailed guides for item identification and modifier recognition
+  - Quick-fill buttons and examples for common items
 
 ### Technical Improvements
 - Improved exception handling throughout the codebase
