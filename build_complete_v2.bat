@@ -248,20 +248,20 @@ echo     'flask_craft_helper', 'auto_detection', 'flask_crafting',
 echo     'poe_craft_helper', 'poe_craft_helper_refactored', 'poe_craft_helper_simple'
 echo ]
 echo.
-echo hiddenimports += collect_submodules('psutil'^)
+echo hiddenimports += collect_submodules('psutil')
 echo.
 echo # Include all Python files and data
 echo datas = [
-echo     ('data', 'data'^),
-echo     ('*.py', '.'^),
-echo     ('README.md', '.'^),
-echo     ('CHANGELOG.md', '.'^),
-echo     ('requirements.txt', '.'^)
+echo     ('data', 'data'),
+echo     ('*.py', '.'),
+echo     ('README.md', '.'),
+echo     ('CHANGELOG.md', '.'),
+echo     ('requirements.txt', '.')
 echo ]
 echo.
 echo a = Analysis(
 echo     ['launcher.py'],
-echo     pathex=[os.path.abspath('.'^^)],
+echo     pathex=[os.path.abspath('.')],
 echo     binaries=[],
 echo     datas=datas,
 echo     hiddenimports=hiddenimports,
@@ -273,9 +273,9 @@ echo     win_no_prefer_redirects=False,
 echo     win_private_assemblies=False,
 echo     cipher=block_cipher,
 echo     noarchive=False,
-echo ^)
+echo )
 echo.
-echo pyz = PYZ(a.pure, a.zipped_data, cipher=block_cipher^)
+echo pyz = PYZ(a.pure, a.zipped_data, cipher=block_cipher)
 echo.
 echo exe = EXE(
 echo     pyz,
@@ -297,6 +297,6 @@ echo     argv_emulation=False,
 echo     target_arch=None,
 echo     codesign_identity=None,
 echo     entitlements_file=None,
-echo ^)
+echo )
 ) > "build_spec.spec"
 goto :eof
