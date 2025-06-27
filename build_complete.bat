@@ -1,6 +1,14 @@
 @echo off
+REM Ensure script stays open on error
+if "%1"=="" (
+    cmd /k "%~f0" RUN
+    exit /b
+)
+
 setlocal enabledelayedexpansion
 title PoE Craft Helper - Complete Build System
+REM Change to script directory
+cd /d "%~dp0"
 echo =========================================
 echo    PoE Craft Helper - Complete Build
 echo =========================================
