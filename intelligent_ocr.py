@@ -13,6 +13,13 @@ from collections import defaultdict
 from dataclasses import dataclass
 from datetime import datetime
 
+# Import our new auto-detection module
+try:
+    from auto_detection import AutoDetector, DetectedItem, AutoDetectionUI
+    AUTO_DETECTION_AVAILABLE = True
+except ImportError:
+    AUTO_DETECTION_AVAILABLE = False
+
 
 @dataclass
 class OCRResult:
@@ -676,6 +683,31 @@ class IntelligentOCREngine:
             return 'declining'
         else:
             return 'stable'
+
+
+    def detect_item_from_screen(self) -> Optional[Dict]:
+        """Detect item from screen using auto-detection if available"""
+        if AUTO_DETECTION_AVAILABLE:
+            detector = AutoDetector()
+            item = detector.detect_item_at_cursor()
+            
+            if item:
+                return {
+                    'base': item.base_type,
+                    'type': item.item_type,
+                    'rarity': item.rarity,
+                    'modifiers': item.modifiers,
+                    'implicit_mods': item.implicit_mods,
+                    'explicit_mods': item.explicit_mods,
+                    'crafted_mods': item.crafted_mods,
+                    'item_level': item.item_level,
+                    'quality': item.quality,
+                    'corrupted': item.corrupted,
+                    'confidence': item.confidence
+                }
+        
+        # Fallback message if auto-detection not available
+        return None
 
 
 # Global intelligent OCR instance

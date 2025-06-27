@@ -26,6 +26,15 @@
   - Comprehensive manual input dialogs for both gear and flasks
   - Detailed guides for item identification and modifier recognition
   - Quick-fill buttons and examples for common items
+- **Auto-Detection Module** (NEW):
+  - Complete OCR-based item detection system
+  - Screen capture with tooltip recognition
+  - Multiple OCR engines (Tesseract, EasyOCR)
+  - Hotkey support (Ctrl+D) for quick detection
+  - Confidence scoring and validation
+  - Calibration tools for optimization
+  - Intelligent item parsing for all PoE formats
+  - Settings dialog with preprocessing options
 
 ### Technical Improvements
 - Improved exception handling throughout the codebase

@@ -467,20 +467,79 @@ class FlaskCraftHelper:
         text.insert(1.0, report)
         
     def detect_flask(self):
-        """Detect flask from screenshot using OCR with manual fallback"""
+        """Detect flask from screenshot using OCR"""
         try:
-            # Show auto-detection unavailable message with manual alternatives
-            response = messagebox.askyesno(
-                "Flask Detection", 
-                "Auto-detection not available yet. Please use manual capture methods.\n\n"
-                "Would you like to open the manual flask input dialog?"
-            )
-            
-            if response:
-                self.open_manual_flask_input()
-            else:
-                # Show guidance for manual detection
-                self.show_manual_detection_guide()
+            # Check if auto-detection is available
+            try:
+                from auto_detection import AutoDetector
+                
+                # Create detector and attempt detection
+                detector = AutoDetector()
+                
+                response = messagebox.askyesnocancel(
+                    "Flask Detection",
+                    "Flask detection options:\n\n"
+                    "YES - Use auto-detection (hover over flask and wait)\n"
+                    "NO - Open manual input dialog\n"
+                    "CANCEL - View detection guide"
+                )
+                
+                if response is True:  # Auto-detection
+                    messagebox.showinfo("Ready", 
+                                      "Hover over a flask in Path of Exile and press OK.\n"
+                                      "Detection will start after a short delay.")
+                    
+                    item = detector.detect_item_at_cursor()
+                    
+                    if item and 'flask' in item.item_type.lower():
+                        # Detected a flask
+                        flask_type = self.flask_engine.detect_flask_type(item.base_type)
+                        if flask_type:
+                            self.selected_flask_type.set(flask_type.value)
+                            self.status_label.config(text=f"✅ Detected: {flask_type.value} ({item.confidence:.0%} confidence)")
+                            
+                            # Parse modifiers
+                            if item.modifiers:
+                                matched_count = 0
+                                for mod_text in item.modifiers:
+                                    for name, var in self.modifier_vars.items():
+                                        if (name.lower() in mod_text.lower() or 
+                                            any(word in name.lower() for word in mod_text.lower().split())):
+                                            var.set(True)
+                                            matched_count += 1
+                                            break
+                                
+                                self.update_selected_modifiers()
+                                if matched_count > 0:
+                                    self.status_label.config(text=f"✅ Detected {matched_count} modifiers")
+                            
+                            # Update quality if available
+                            if item.quality and hasattr(self, 'quality_entry'):
+                                self.quality_entry.delete(0, tk.END)
+                                self.quality_entry.insert(0, str(item.quality))
+                    else:
+                        messagebox.showwarning("Not a Flask", 
+                                             "Detected item is not a flask or detection failed.\n"
+                                             "Try manual input instead.")
+                        self.open_manual_flask_input()
+                        
+                elif response is False:  # Manual input
+                    self.open_manual_flask_input()
+                else:  # Guide
+                    self.show_manual_detection_guide()
+                    
+            except ImportError:
+                # Auto-detection not available, show setup guide
+                response = messagebox.askyesno(
+                    "Auto-Detection Not Available",
+                    "Auto-detection requires additional libraries.\n\n"
+                    "Would you like to use manual input instead?"
+                )
+                
+                if response:
+                    self.open_manual_flask_input()
+                else:
+                    self.show_manual_detection_guide()
                 
         except Exception as e:
             logger.error(f"Flask detection error: {e}")

@@ -1214,28 +1214,180 @@ class IntelligentPOECraftHelper:
             messagebox.showerror("Error", f"Failed to setup multi-monitor: {e}")
     
     def open_item_detection(self):
-        """Open item detection window with manual fallback"""
+        """Open item detection window with auto-detection support"""
         try:
-            # Show auto-detection unavailable message
-            response = messagebox.askyesno(
-                "Item Detection", 
-                "Auto-detection not available yet. Please use manual capture methods.\n\n"
-                "Would you like to see the manual input guide for gear/armour?"
-            )
-            
-            if response:
-                self.show_manual_item_guide()
-            else:
-                # Show brief instruction
-                messagebox.showinfo("Manual Input", 
-                    "For manual item input:\n"
-                    "1. Enter item base in the 'Item Base' field\n"
-                    "2. List target modifiers in the text area\n"
-                    "3. Set budget and item level\n"
-                    "4. Generate crafting plan")
+            # Check if auto-detection is available
+            try:
+                from auto_detection import AutoDetectionUI, AUTO_DETECTION_AVAILABLE
+                
+                if AUTO_DETECTION_AVAILABLE:
+                    # Show options dialog
+                    response = messagebox.askyesnocancel(
+                        "Item Detection",
+                        "Auto-detection is available!\n\n"
+                        "YES - Enable auto-detection (Ctrl+D hotkey)\n"
+                        "NO - Use manual input guide\n"
+                        "CANCEL - Configure detection settings"
+                    )
+                    
+                    if response is True:  # Yes - Enable auto-detection
+                        self.enable_auto_detection()
+                    elif response is False:  # No - Manual guide
+                        self.show_manual_item_guide()
+                    else:  # Cancel - Settings
+                        if hasattr(self, 'auto_detection_ui'):
+                            self.auto_detection_ui.show_detection_settings()
+                        else:
+                            messagebox.showinfo("Info", "Enable auto-detection first to access settings")
+                else:
+                    # Libraries not installed
+                    self.show_detection_setup_guide()
+            except ImportError:
+                # auto_detection module not found
+                self.show_detection_setup_guide()
                 
         except Exception as e:
             messagebox.showerror("Error", f"Failed to open item detection: {e}")
+            
+    def enable_auto_detection(self):
+        """Enable auto-detection functionality"""
+        try:
+            from auto_detection import setup_auto_detection
+            
+            # Setup auto-detection
+            self.auto_detection_ui = setup_auto_detection(self)
+            
+            # Update button text
+            for widget in self.root.winfo_children():
+                if isinstance(widget, tk.Frame):
+                    for child in widget.winfo_children():
+                        if isinstance(child, tk.Button) and "Manual Input Guide" in child.cget("text"):
+                            child.config(text="🔍 Item Detection (Ctrl+D)")
+                            break
+            
+            messagebox.showinfo("Auto-Detection Enabled", 
+                              "Auto-detection is now enabled!\n\n"
+                              "How to use:\n"
+                              "1. Hover over an item in Path of Exile\n"
+                              "2. Press Ctrl+D\n"
+                              "3. Item will be detected and populated\n\n"
+                              "Configure settings from the detection menu.")
+            
+        except Exception as e:
+            messagebox.showerror("Error", f"Failed to enable auto-detection: {e}")
+            
+    def show_detection_setup_guide(self):
+        """Show guide for setting up auto-detection"""
+        response = messagebox.askyesno(
+            "Auto-Detection Setup",
+            "Auto-detection requires additional libraries.\n\n"
+            "Would you like to see the setup instructions?"
+        )
+        
+        if response:
+            setup_window = tk.Toplevel(self.root)
+            setup_window.title("Auto-Detection Setup Guide")
+            setup_window.geometry("700x600")
+            setup_window.transient(self.root)
+            
+            text_widget = tk.Text(setup_window, wrap='word', font=("Arial", 10))
+            scrollbar = tk.Scrollbar(setup_window, orient="vertical", command=text_widget.yview)
+            text_widget.configure(yscrollcommand=scrollbar.set)
+            
+            setup_text = """🔧 AUTO-DETECTION SETUP GUIDE
+
+To enable auto-detection, install the required libraries:
+
+📦 REQUIRED LIBRARIES:
+
+1. Basic OCR (Tesseract):
+   pip install pytesseract opencv-python pillow numpy
+
+2. Enhanced OCR (EasyOCR) - Optional but recommended:
+   pip install easyocr
+
+3. Screen capture optimization (Optional):
+   pip install mss
+
+4. Hotkey support:
+   pip install keyboard
+
+📋 SYSTEM REQUIREMENTS:
+
+1. Tesseract OCR Engine:
+   • Windows: Download from https://github.com/UB-Mannheim/tesseract/wiki
+   • Linux: sudo apt-get install tesseract-ocr
+   • Mac: brew install tesseract
+
+2. Set Tesseract path (Windows only):
+   • Add to system PATH, or
+   • Set in code: pytesseract.pytesseract.tesseract_cmd = r'C:\\Program Files\\Tesseract-OCR\\tesseract.exe'
+
+🚀 QUICK INSTALL (All libraries):
+
+pip install pytesseract opencv-python pillow numpy easyocr mss keyboard
+
+⚡ FEATURES AFTER SETUP:
+
+• Automatic item detection with Ctrl+D hotkey
+• Multiple OCR engines for better accuracy
+• Image preprocessing for improved detection
+• Confidence scoring and validation
+• Calibration tools for optimization
+• Support for all item types
+
+🎯 USAGE:
+
+1. Install libraries as shown above
+2. Restart the application
+3. Click "Item Detection" → "Enable auto-detection"
+4. Hover over item in PoE and press Ctrl+D
+5. Item data automatically populates
+
+💡 TIPS:
+
+• EasyOCR provides better accuracy but is larger (~1GB)
+• First run of EasyOCR downloads models automatically
+• Use calibration tool to optimize for your setup
+• Adjust confidence threshold if getting false positives
+• Enable preprocessing for better results
+
+📝 MANUAL FALLBACK:
+
+If auto-detection isn't working well:
+• Use the manual input guide (always available)
+• Take screenshots and use "Detect from Image"
+• Adjust detection settings for your monitor
+
+For now, you can use the manual input guide by selecting "NO" in the detection dialog."""
+            
+            text_widget.insert("1.0", setup_text)
+            text_widget.config(state='disabled')
+            
+            text_widget.pack(side="left", fill="both", expand=True, padx=10, pady=10)
+            scrollbar.pack(side="right", fill="y", pady=10)
+            
+            # Buttons
+            button_frame = tk.Frame(setup_window)
+            button_frame.pack(fill='x', padx=10, pady=10)
+            
+            def copy_install_command():
+                self.root.clipboard_clear()
+                self.root.clipboard_append("pip install pytesseract opencv-python pillow numpy easyocr mss keyboard")
+                messagebox.showinfo("Copied", "Install command copied to clipboard!")
+            
+            tk.Button(button_frame, text="Copy Install Command", command=copy_install_command,
+                     bg='#4CAF50', fg='white').pack(side='left', padx=5)
+            tk.Button(button_frame, text="Close", command=setup_window.destroy,
+                     bg='#2196F3', fg='white').pack(side='right', padx=5)
+        else:
+            # Show manual guide
+            self.show_manual_item_guide()
+            
+    def update_status(self, message: str):
+        """Update status label if it exists"""
+        if hasattr(self, 'status_label'):
+            self.status_label.config(text=message)
             
     def show_manual_item_guide(self):
         """Show manual item input guide for gear/armour"""
