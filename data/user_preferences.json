@@ -6,7 +6,7 @@
   "auto_refresh_prices": true,
   "price_update_interval": 300,
   "show_budget_optimization": true,
-  "league_name": "Secrets of the Atlas",
+  "league_name": "Settlers of Kalguur",
   "ui_theme": "dark",
   "auto_detect_items": false
 }

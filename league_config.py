@@ -86,11 +86,11 @@ class LeagueManager:
             if os.path.exists(self.preferences_path):
                 with open(self.preferences_path, 'r') as f:
                     data = json.load(f)
-                    return data.get('league_name', 'Secrets of the Atlas')
+                    return data.get('league_name', 'Settlers of Kalguur')
         except Exception as e:
             logging.error(f"Error loading league from preferences: {e}")
         
-        return 'Secrets of the Atlas'  # Default fallback
+        return 'Settlers of Kalguur'  # Default fallback
     
     def get_display_name(self) -> str:
         """Get formatted display name for UI"""

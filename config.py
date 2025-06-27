@@ -95,7 +95,7 @@ LOGGING_CONFIG = {
 
 # League Configuration
 LEAGUE_CONFIG = {
-    'default_league': 'Secrets of the Atlas',
+    'default_league': 'Settlers of Kalguur',
     'auto_detect_league': True,
     'league_api_mappings': {
         "Secrets of the Atlas": "Secrets",
