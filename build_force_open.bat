@@ -1,0 +1,1 @@
+cmd /k @echo off && echo PoE Craft Helper Build && echo. && echo Checking Python... && python --version && echo. && echo Current directory: && cd && echo. && echo Files in directory: && dir /b *.py && echo. && echo Press Ctrl+C to exit or close the window && pause >nul
